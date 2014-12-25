@@ -13,7 +13,7 @@ Install Django 1.7+.
 
 Run migrations: `python manage.py make migrations`, then `python manage.py make migrate`.
 
-Create a superuser -- `python manage.py createsuperuser --username=YOUR_USERNAME --email=YOUR_EMAIL_ADDRESS
+Create a superuser -- `python manage.py createsuperuser --username=YOUR_USERNAME --email=YOUR_EMAIL_ADDRESS`
 
 In settings.py, change the time zone (if necessary) and secret key.
 
@@ -23,7 +23,7 @@ Create/manage users through the admin.
 
 
 ##About
-Additional features and minor bug fixes are on my mind.  Please feel free to fork or file a bug report.  Visit paulsolin.com for more information.
+Additional features and minor bug fixes are on my mind.  Please feel free to fork or file a bug report.  Visit http://paulsolin.com for more information.
 
 
 Projects/technologies utilized:
