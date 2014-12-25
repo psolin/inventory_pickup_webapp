@@ -1,0 +1,74 @@
+{% extends "pickup/base.html" %}
+
+{% block title %}History{% endblock %}
+
+{% block header %}History{% endblock %}
+
+{% block nav %}
+<div class="text-center">
+<div class="btn-group hidden-lg hidden-md top-nav" role="group" aria-label="...">
+<a href="/home" class="btn btn-default btn-lg" id="nav-link"><span class="glyphicon glyphicon-home"></span></a>
+<a href="/active" class="btn btn-default btn-lg" id="nav-link">Active</a></button>
+<a href="/history" class="btn btn-default btn-lg active" id="nav-link">History</a></button>
+</div>
+</div>
+
+<div class="hidden-xs hidden-sm">
+<p class="navbar-text h4">Pickup Database</p>
+<ul class="nav navbar-nav">
+<li><a href="/home">Home <span class="sr-only">(current)</span></a></li>
+<li><a href="/active">Active</a></li>
+<li class="active"><a href="/history">History</a></li>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+            <div class="table-responsive">
+                <table id="grid" class="table table-condensed table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th data-column-id="transNum" data-filterable="true" data-formatter="link" data-align="center" data-header-align="center">Transaction #</th>
+                            <th data-column-id="Customer" data-filterable="true">Customer</th>
+                            <th data-column-id="transDate" data-filterable="true">Transaction Date</th>
+                            <th data-column-id="Items" data-filterable="true">Items</th>
+                            <th data-column-id="Status" data-filterable="true">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                      {% for transaction in transaction_list %}
+                        <tr>
+                            <td>{{ transaction.transaction_num }}</td>
+                            <td>{{ transaction.customer_name }}</td>
+                            <td>{{ transaction.transaction_date|date:"c" }}</td>
+                            <td>{{ transaction.item_set.count }}</td>
+                            <td>{{ transaction.status }}</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                </table>
+            <!--/div-->
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block custom_scripts %} 
+
+<script>
+$("#grid").bootgrid(
+  {
+	formatters: {
+	        "link": function(column, row)
+	        {
+	            return '<a href="/transaction/' + row[column.id] + '">' + row[column.id] + '</a>';
+	        }
+	    }
+	});
+</script>
+
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "pickup/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block header %}Welcome, {{ user.first_name }}!
+{% endblock %}
+
+{% block nav %}
+<div class="text-center">
+<div class="btn-group hidden-lg hidden-md top-nav" role="group" aria-label="...">
+<a href="/" class="btn btn-default btn-lg active" id="nav-link"><span class="glyphicon glyphicon-home"></span></a>
+<a href="/active" class="btn btn-default btn-lg" id="nav-link">Active</a></button>
+<a href="/history" class="btn btn-default btn-lg" id="nav-link">History</a></button>
+</div>
+</div>
+
+<div class="hidden-xs hidden-sm">
+<p class="navbar-text h4">Pickup Database</p>
+<ul class="nav navbar-nav">
+<li class="active"><a href="/">Home <span class="sr-only">(current)</span></a></li>
+<li><a href="/active">Active</a></li>
+<li><a href="/history">History</a></li>
+</div>
+{% endblock %}
+
+{% block content%}
+<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-centered">
+	{% if overdue_transactions == 1 %}
+	<div class="alert alert-danger fade in" role="alert"><span class="glyphicon glyphicon-time"></span>
+	There is one overdue transaction which needs your attention.  <a href="/active" class="alert-link">View it here</a>.
+	</div>
+	{% elif overdue_transactions > 1 %}
+	<div class="alert alert-danger fade in" role="alert"><span class="glyphicon glyphicon-time"></span>
+	There are {{ overdue_transactions }} overdue transactions which need your attention.  <a href="/active" class="alert-link">View them here</a>.
+	</div>
+	{% endif %}
+
+	<ul class="nav nav-pills">
+	  <li class="active"><a href="#tab_a" data-toggle="pill">Stats</a></li>
+	  <li><a href="#tab_b" data-toggle="pill">Help</a></li>
+	  <li><a href="#tab_c" data-toggle="pill">Other</a></li>
+	</ul>
+
+	<div class="tab-content">
+	<!-- View Tab -->
+	<div class="tab-pane active" id="tab_a">
+		<br />
+		<p>Stats will go here.  Some day.</p>
+	</div>
+
+	<div class="tab-pane fade" id="tab_b">
+		<br />
+		<h4>When Do I Use This?</h4>
+		<p>Use this app whenever customer items are moved to or from the "Sold" holding area.</p>
+		<br />
+
+		<h4>How Do I Do It?</h4>
+		<p>Click the <span class="glyphicon glyphicon-plus"></span> button to add a transaction and its items.  The transaction should appear under the 'Active' page.</p>
+		<br />
+
+		<h4>What If I Have Issues?</h4>
+		<p>Send an email to <a href="mailto:paul@paulsolin.com">paul@paulsolin.com</a>, or file a bug at the repository over at <a href="http://github.com/psolin">github.com/psolin</a>.</p>
+	</div>
+
+	<div class="tab-pane fade" id="tab_c">
+	<br />
+	<h4>Content Header</h4>
+	</p>Optional text.</p>
+	</div>
+
+	<br />
+</div>
+{% endblock %}

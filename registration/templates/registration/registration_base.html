@@ -1,0 +1,70 @@
+{% load i18n %}
+{% load url from future %}
+
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Register</title>
+
+    <!-- Bootstrap -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="/static/css/custom.css" rel="stylesheet">
+
+    <!-- pickadate.js CSS -->
+    <link href="/static/css/classic.css" rel="stylesheet">
+    <link href="/static/css/classic.date.css" rel="stylesheet">
+    <link href="/static/css/classic.time.css" rel="stylesheet">
+
+    <!-- Bootstrap Tagsinput -->
+    <link href="/static/css/bootstrap-tagsinput.css" rel="stylesheet">
+    
+    <!-- Bootgrid -->
+    <link href="/static/css/jquery.bootgrid.css" rel="stylesheet">
+
+  </head>
+  <body>
+  	<div class="container">			
+			<section class="main login-form well offset4 span4">
+				<p class="h4">
+					Register an account
+				</p>
+				<p>You will get a confirmation email if we like you.</p>
+					<p class="float">
+				<form method="post" action="">
+				    {% csrf_token %}
+				    <p class="required"><label for="id_username">Username:</label> <input id="id_username" maxlength="30" name="username" type="text" /></p>
+				<p class="required"><label for="id_email">E-mail:</label> <input id="id_email" name="email" type="email" /></p>
+				<p class="required"><label for="id_password1">Password:</label> <input id="id_password1" name="password1" type="password" /></p>
+				<p class="required"><label for="id_password2">Password (again):</label> <input id="id_password2" name="password2" type="password" /></p>
+				    <input type="submit" value="Submit" />
+				</form>
+</p>
+			</section>
+	</div>
+
+  </body>
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="/static/js/jquery-1.9.1.min.js"></script>
+
+    <!-- That bootstrap jawn -->
+    <script src="/static/js/bootstrap.js"></script>
+
+    <!--pickadate.js -->
+    <script src="/static/js/picker.js"></script>
+    <script src="/static/js/picker.date.js"></script>
+    <script src="/static/js/legacy.js"></script>
+
+    <!-- JQuery Bootgrid -->
+    <script src="/static/js/jquery.bootgrid.js"></script>
+
+    <!-- Bootstrap Tagsinput -->
+    <script src="/static/js/bootstrap-tagsinput.min.js"></script>
+
+    <!-- https://github.com/Tavicu/bootstrap-confirmation -->
+    <script src="/static/js/bootstrap-confirmation.js"></script>
+</html>

@@ -1,0 +1,188 @@
+#main {
+overflow: scroll;
+}
+
+#submit_paragraph{
+  padding-top: 1em;
+}
+
+body {
+	/* Margin bottom by footer height */
+  	margin-bottom: 60px;
+	}
+
+.list-group {
+  padding: 1em;
+}
+
+#top_inline
+{
+  position: relative;
+}
+
+/* The add button in edit view - remove that blue glow! */
+#add {
+  color: black;
+  margin-bottom: .10em;
+  margin-left: -.25em;
+}
+
+#add_button {
+  float: right;
+}
+
+/* Now the bootgrid elements are fit for mobile */
+
+/* Fix the datepicker in a modal */
+.modal
+  {
+    z-index:1151 !important;
+    overflow-y: auto;
+  }
+
+  .datepicker
+  {
+    z-index:1152 !important;
+    overflow-y: auto;
+  }
+
+#item_button {
+  font-size: 1em;
+  margin-top: -.8em;
+}
+
+#item_list {
+  margin-top: -1em;
+  margin-bottom: 1em;
+}
+
+#note_list {
+  margin-top: -1em;
+  margin-bottom: 1em;
+}
+
+/* Check a button, or not.  The power is yours */
+
+#item_state {
+  float: right;
+  margin-top: -2.5em;
+  border: none;
+  padding: 0px;
+}
+
+
+#item_add_comment {
+  margin-top: -.5em;
+  font-size: .95em;
+}
+
+.col-centered{
+float: none;
+margin: 0 auto;
+}
+/* Make the textarea width 100% */
+
+#textarea {
+  width: 100%;
+}
+
+/* Fixes some of the button depress bugs */
+
+.btn-default:focus,
+.btn-default:active,
+.btn-default.active
+{
+  background-color: white;
+}
+
+.btn-default:hover {  
+  background-color: white;
+}
+
+#nav-link {
+  color: black;
+}
+
+.top-nav {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+#grid-header {
+  text-align: right;
+}
+
+.search {
+top: 3em;
+float: right;
+}
+
+.actions {
+  right: 1.5em;
+   float: right;
+}
+
+/* Registration forms CSS */
+#password_form {
+  padding-top: .5em;
+}
+
+.errorlist li {
+  list-style-type:none;
+}
+
+.errorlist {
+  padding: 0px;
+  text-align: center;
+}
+
+.login-form {
+     margin:0 auto; 
+     width: 20em;
+     margin-top: 10%;
+}
+
+#reset_password2 {
+  padding-top: .5em;
+}
+
+#remove_transaction {
+  margin-top: .5em;
+}
+
+.unstyled {
+  list-style-type: none;
+  line-height: 2em;
+  margin-left: -2.8em;
+}
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 1em;
+  font-size: .75em;
+}
+
+.modal {
+  background-color: rgba(0,0,0,.75);
+}
+
+.trans-pills {
+  font-size: .9em;
+}
+
+/* Custom page CSS
+-------------------------------------------------- */
+/* Not required for template or sticky footer method. */
+
+.container .text-muted {
+  margin: -1.25em;
+}

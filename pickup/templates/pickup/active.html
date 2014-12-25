@@ -1,0 +1,155 @@
+{% extends "pickup/base.html" %}
+
+{% block title %}Active{% endblock %}
+
+{% block header %}Active{% endblock %}
+
+{% block nav %}
+<div class="text-center">
+<div class="btn-group hidden-lg hidden-md top-nav" role="group" aria-label="...">
+<a href="/home" class="btn btn-default btn-lg" id="nav-link"><span class="glyphicon glyphicon-home"></span></a>
+<a href="/active" class="btn btn-default btn-lg active" id="nav-link">Active</a></button>
+<a href="/history" class="btn btn-default btn-lg" id="nav-link">History</a></button>
+</div>
+</div>
+
+<div class="hidden-xs hidden-sm">
+<p class="navbar-text h4">Pickup Database</p>
+<ul class="nav navbar-nav">
+<li><a href="/home">Home <span class="sr-only">(current)</span></a></li>
+<li class="active"><a href="/active">Active</a></li>
+<li><a href="/history">History</a></li>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="col-md-12 col-centered">
+<ul class="nav nav-pills">
+  <li class="active"><a href="#tab_a" data-toggle="pill">Transactions</a></li>
+<li><a href="#tab_b" data-toggle="pill">Items</a></li>
+</ul>
+
+<div class="tab-content">
+<!-- View Tab -->
+<div class="tab-pane active" id="tab_a">
+
+    <div class="container-fluid">
+    <div class="row">
+        <div class="table-responsive">
+            <table id="grid" class="table table-condensed table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th data-column-id="transNum" data-filterable="true" data-formatter="link" data-align="center" data-header-align="center">Transaction #</th>
+                        <th data-column-id="Customer" data-filterable="true">Customer</th>
+                        <th data-column-id="transDate" data-filterable="true">Transaction Date</th>
+                        <th data-column-id="Items" data-filterable="true">Items</th>
+                        <th data-column-id="Overdue" data-formatter="overdue" data-filterable="true">Overdue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  {% for transaction in transaction_list %}
+                    <tr>
+                        <td>{{ transaction.transaction_num }}</td>
+                        <td>{{ transaction.customer_name }}</td>
+                        <td>{{ transaction.transaction_date|date:"c" }}</td>
+                        <td>{{ transaction.item_set.count }}</td>
+                        <td>{{ transaction.overdue }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+        <!--/div-->
+    </div>
+    </div>
+    </div>
+
+</div>
+
+<div class="tab-pane fade" id="tab_b">
+    <div class="container-fluid">
+    <div class="row">
+        <div class="table-responsive">
+            <table id="item-grid" class="table table-condensed table-hover table-striped">
+                <thead>
+                    <tr data-formatter="current_row">
+                        <th data-column-id="itemDesc" data-filterable="true" data-align="center" data-header-align="center">Item</th>
+                        <th data-column-id="itemCustomer" data-filterable="true">Customer</th>
+                        <th data-column-id="itemTransNum" data-formatter="link" data-filterable="true">Transaction #</th>
+                        <th data-column-id="itemTransDate" data-filterable="true">Transaction Date</th>
+                        <th data-column-id="itemOverdue" data-formatter="itemOverdue" data-filterable="true">Overdue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  {% for i in item_list %}
+                    <tr>
+                        <td>{{ i.desc }}</td>
+                        <td>{{ i.transaction_num.customer_name }}</td>
+                        <td>{{ i.transaction_num }}</td>
+                        <td>{{ i.transaction_num.transaction_date }}</td>
+                        <td>{{ i.transaction_num.overdue }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+        <!--/div-->
+    </div>
+    </div>
+    </div>
+</div>
+
+
+</div>
+
+
+
+{% endblock %}
+
+{% block custom_scripts %} 
+
+<script>
+$("#grid").bootgrid(
+{
+	formatters: {
+        "link": function(column, row)
+        {
+            return '<a href="/transaction/' + row[column.id] + '">' + row[column.id] + '</a>';
+        },
+        "overdue": function(column, row)
+            {
+                if (row[column.id] == "True")
+                {
+                    return "Yes";
+                }
+                else
+                {
+                    return "No";
+                
+                }
+            }
+	}
+});
+$("#item-grid").bootgrid(
+{
+    formatters: {
+            "link": function(column, row)
+            {
+                return '<a href="/transaction/' + row[column.id] + '">' + row[column.id] + '</a>';
+            },
+            "itemOverdue": function(column, row)
+            {
+                if (row[column.id] == "True")
+                {
+                    return "Yes";
+                }
+                else
+                {
+                    return "No";
+                
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}
