@@ -2,11 +2,11 @@
 Created to help keep track of sold/held customer merchandise.
 
 
-##General Concepts:
+##General Concepts
 Customers make a sale, which are referred to as transactions.  Transactions have items.  These items are held by the store, and need to be tracked when picked up by the customer.
 
 
-##How to use:
+##How to use
 Install Django 1.7+.
 
 `cd` into the project folder.
