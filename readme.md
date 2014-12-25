@@ -2,7 +2,7 @@
 Created to help keep track of sold/held customer merchandise.
 
 
-##General Concepts
+##General concepts
 Customers make a sale, which are referred to as transactions.  Transactions have items.  These items are held by the store, and need to be tracked when picked up by the customer.
 
 
@@ -11,7 +11,7 @@ Install Django 1.7+.
 
 `cd` into the project folder.
 
-Run migrations: `python manage.py make migrations`, then `python manage.py make migrate`.
+Run migrations: `python manage.py makemigrations`, then `python manage.py make migrate`.
 
 Create a superuser: `python manage.py createsuperuser --username=YOUR_USERNAME --email=YOUR_EMAIL_ADDRESS`
 
