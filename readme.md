@@ -9,7 +9,7 @@ Customers make a sale, which are referred to as transactions.  Transactions have
 ##How to use
 Install Django 1.7+.
 
-`cd` into the project folder.
+Download and `cd` into the repository.
 
 Run migrations: `python manage.py makemigrations`, then `python manage.py make migrate`.
 
