@@ -3,7 +3,7 @@ Created to help keep track of sold/held customer merchandise.
 
 
 ##General concepts
-Customers make a sale, which are referred to as transactions.  Transactions have items.  These items are held by the store, and need to be tracked when picked up by the customer.
+Customers make a sale, which are referred to as transactions.  Transactions have items.  These items are held by a store, and need to be tracked.
 
 
 ##How to use
