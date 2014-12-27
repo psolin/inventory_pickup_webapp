@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models, connection
 from datetime import datetime
 
+
 class Transaction(models.Model):
     transaction_num = models.IntegerField(primary_key=True)
     customer_name = models.CharField(max_length=255, blank=True)
@@ -13,19 +14,14 @@ class Transaction(models.Model):
 
     # The status of the transaction, based on the items or the forfeit boolean
     def status(self):
-        if self.forfeit_date != None:
+        if self.forfeit_date is not None:
             return "Forfeited"
         else:
-            cursor = connection.cursor()
-            item_query = """SELECT itemid, picked_up_on FROM item WHERE transaction_num = %s""" % (self.transaction_num)
-            cursor.execute(item_query)
-
-            results = cursor.fetchall()
-
+            results = Item.objects.filter(transaction_num=self.pk)
             if len(results) > 0:
                 active = 0
                 for item in results:
-                    if item[1] == None:
+                    if item.picked_up_on is None:
                         active += 1
                 if active > 0:
                     return "Active"
@@ -34,17 +30,15 @@ class Transaction(models.Model):
             else:
                 return "No Items"
 
-    class Meta:
-        db_table = 'transaction'
-
     def __str__(self):              # __unicode__ on Python 2
-        return str(self.transaction_num)
+        return str(self.pk)
 
     def final_pickup_date(self):
         if self.status() == "Completed":
             cursor = connection.cursor()
 
             # Return latest item pickup date
+            Item.objects.filter(transaction_num=self.pk)
             final_pickup_query = """SELECT picked_up_on FROM 'item' WHERE 'item'.transaction_num = %s ORDER BY picked_up_on DESC""" % (self.transaction_num)
             cursor.execute(final_pickup_query)
             results = cursor.fetchall()
@@ -67,7 +61,7 @@ class Transaction(models.Model):
 # Create your models here.
 class Item(models.Model):
     itemid = models.IntegerField(primary_key=True)
-    transaction_num = models.ForeignKey(Transaction, db_column='transaction_num', on_delete=models.CASCADE)
+    transaction_num = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     desc = models.CharField(max_length=255)
     picked_up_on = models.DateField(blank=True, null=True)
 
@@ -79,15 +73,12 @@ class Item(models.Model):
 
     # Override date string with "Forfeited" if never picked up
     def status(self):
-        cursor = connection.cursor()
-        forfeit_status_query = """SELECT 'transaction'.forfeit_date FROM 'transaction'  WHERE 'transaction'.transaction_num = %s""" % (self.transaction_num)
-        cursor.execute(forfeit_status_query)
-
-        results = cursor.fetchall()[0][0]
-
-        if self.picked_up_on != None:
+        results = Transaction.objects.get(
+            transaction_num=self.transaction_num.pk
+        )
+        if self.picked_up_on is not None:
             return "Picked up %s" % (self.picked_up_on.strftime('%A, %b. %-d, %Y'))
-        elif results != None:
+        elif results.forfeit_date is not None:
             return "Forfeited"
         else:
             return "In Inventory"
