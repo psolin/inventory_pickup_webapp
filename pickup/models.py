@@ -39,7 +39,7 @@ class Transaction(models.Model):
 
             # Return latest item pickup date
             Item.objects.filter(transaction_num=self.pk)
-            final_pickup_query = """SELECT picked_up_on FROM 'item' WHERE 'item'.transaction_num = %s ORDER BY picked_up_on DESC""" % (self.transaction_num)
+            final_pickup_query = """SELECT picked_up_on FROM 'item' WHERE 'Item'.transaction_num_id = %s ORDER BY picked_up_on DESC""" % (self.transaction_num)
             cursor.execute(final_pickup_query)
             results = cursor.fetchall()
             return results[0][0].strftime('%A, %b. %-d, %Y')

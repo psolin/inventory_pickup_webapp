@@ -13,17 +13,6 @@ from django.utils.timezone import localtime
 ############ Functions used to get info from the DB ############
 
 
-# A count of the active transactions
-def active_count():
-    cursor = connection.cursor()
-    active_count_query = """SELECT count(distinct "transaction".transaction_num) FROM "transaction" INNER JOIN "item" ON "transaction".transaction_num = "item".transaction_num WHERE ("transaction".forfeit_date IS NULL) AND picked_up_on IS NULL"""
-    cursor.execute(active_count_query)
-
-    results = cursor.fetchall()
-
-    return results[0][0]
-
-
 # Updating the transaction info pane
 def transaction_info(transaction_number):
     pulled_transaction = Transaction.objects.get(
@@ -270,7 +259,7 @@ def check_item(request):
         pulled_transaction = Transaction.objects.get(
             transaction_num=transaction_number)
         transaction_status = pulled_transaction.status()
-        current_active = active_count()
+        current_active = 0
 
         # Pull the item again in its new state
         pulled_item = Item.objects.get(itemid=item_to_check)
