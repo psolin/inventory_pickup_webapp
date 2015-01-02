@@ -57,6 +57,13 @@ class Transaction(models.Model):
         else:
             return False
 
+    def pretty_phone(self):
+        if len(self.phone) == 10:
+            phone_string = "(" + self.phone[0:3] + ") " + self.phone[3:6] + "-" + self.phone[6:10]
+            return phone_string
+        else:
+            return self.phone
+
 
 # Create your models here.
 class Item(models.Model):

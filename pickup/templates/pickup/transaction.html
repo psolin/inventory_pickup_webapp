@@ -1,4 +1,5 @@
 {% extends "pickup/base.html" %}
+{% load humanize %}
 
 {% block title %}Transaction # {% for transaction in transaction_list %}{{ transaction.transaction_num }}{% endfor %}{% endblock %}
 
@@ -26,9 +27,9 @@
 	<ul class="unstyled" id="info_list">
 	<li><strong>Status</strong>: <span id="info_status">{{ transaction.status }}</span></li>
 	<li><strong>Customer</strong>: {{ transaction.customer_name }}</li>
-	<li><strong>Phone</strong>: {{ transaction.phone }}
-	<li><strong>Transaction Date</strong>: {{ transaction.transaction_date|date:'l, M. d, Y' }}</li>
-	<li><strong>Estimated Pickup</strong>: {{ transaction.est_pickup_date|date:'l, M. d, Y' }}</li>
+	<li><strong>Phone</strong>: {{ transaction.pretty_phone }}
+	<li><strong>Transaction Date</strong>: {{ transaction.transaction_date|date:'l, M. d, Y' }} {% if ',' not in transaction.transaction_date|naturalday %}({{ transaction.transaction_date|naturalday }}){% endif %} </li>
+	<li><strong>Estimated Pickup</strong>: {{ transaction.est_pickup_date|date:'l, M. d, Y' }} {% if ',' not in transaction.est_pickup_date|naturalday %}({{ transaction.est_pickup_date|naturalday }}){% endif %}</li>
 
 	{% if transaction.status == "Completed" %}
 	<span id="info_actual_pickup"><li><strong>Actual Pickup</strong>: {{ transaction.final_pickup_date }}</li></span>
@@ -65,7 +66,7 @@
 	  	{% if transaction.forfeit_date == None %}
 	  	<!-- Edit button -->
 	  	<small><button type="button" class="btn btn-sm btn-default glyphicon glyphicon-pencil" data-toggle="modal" data-target="#editItem-{{ item.itemid }}" data-button="edit" id="{{ item.itemid }}"></button></small>
-	  	
+
 	  	<!-- Trash button -->
 		<small><button type="button" class="btn btn-sm btn-default glyphicon glyphicon-trash" name="item_button" data-placement="bottom" data-button="trash" id="{{ item.itemid }}" data-transnum="{{transaction.transaction_num}}" data-id="{{ item.itemid }}" title="Remove '{{ item.desc }}'?" data-toggle="confirmation"></button></small>
 		{% endif %}
@@ -80,12 +81,14 @@
 	 <!-- Only add items if the transaction is not forfeitted -->
 	 {% for transaction in transaction_list %}
 	 {% if transaction.forfeit_date == None %}
+	{% if perms.pickup.add_item %}
 	<!-- Add Item Modal Button -->
 	<li class="list-group-item text-center">
 		<button type="button" class="btn btn-link btn-md" data-toggle="modal" data-target="#addItem">
 		  Add Items
 		</button>
 	</li>
+	{% endif %}
 	{% endif %}
 	{% endfor %}
 	</ul>
@@ -155,11 +158,13 @@
 
 	 {% endfor %}
 	<!-- Add Note Modal -->
+	{% if perms.pickup.add_note %}
 	<li class="list-group-item text-center">
 		<button type="button" class="btn btn-link btn-md" data-toggle="modal" data-target="#addNote">
 		  Add Note
 		</button>
 	</li>
+	{% endif %}
 	</ul>
 </div>
 
@@ -188,9 +193,9 @@
 <!-- Edit Tab -->
 <div class="tab-pane fade" id="tab_d">
 	<br />
-	<form name="edit_form" id="edit_form" class="form-horizontal">        
+	<form name="edit_form" id="edit_form" class="form-horizontal">
       <div class="input-group">
-        <span class="input-group-addon">Transaction #</span> 
+        <span class="input-group-addon">Transaction #</span>
         <input type="text" class="form-control" id="transNum" initial="{{ transaction.transaction_num }}" value="{{ transaction.transaction_num }}" pattern="\d*">
       </div>
 
@@ -202,12 +207,14 @@
 		  {% else %}
 		  <a href="#" class="btn btn-warning btn-block text-center" id="forfeit_button">Forfeit Transaction</a>
 		  {% endif %}
+		  {% if perms.pickup.delete_transaction %}
 		  <a href="#" class="btn btn-danger btn-block text-center" id="remove_transaction">Remove Transaction</a>
+		  {% endif %}
 		</div>
 
 	<hr />
       <br />
-  
+
      <div class="form-group">
             <div class="col-lg-12">
             <label for="transDate">Transaction Date</label>
@@ -248,11 +255,10 @@
 
 </div><!-- end of container -->
 </div>
-{% endfor %}   
+{% endfor %}
 {% endblock %}
 
 {% block custom_scripts %}
 <!-- Transaction page jQuery -->
 <script src="/static/js/transaction.js"></script>
 {% endblock %}
-

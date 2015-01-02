@@ -405,11 +405,6 @@ def active(request):
 
     return render(request, 'pickup/active.html', data)
 
-
-def login(request):
-    return render(request, 'pickup/login.html')
-
-
 def home(request):
     # 404 if not logged in
     if not request.user.is_authenticated():
