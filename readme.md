@@ -11,13 +11,13 @@ Install Django 1.7+.
 
 Download and `cd` into the repository.
 
-Run migrations: `python manage.py makemigrations`, then `python manage.py make migrate`.
+Run migrations: `python manage.py makemigrations`, then `python manage.py migrate`.
 
 Create a superuser: `python manage.py createsuperuser --username=YOUR_USERNAME --email=YOUR_EMAIL_ADDRESS`
 
 In settings.py, change the time zone (if necessary) and secret key.
 
-`python manage.py runserver` to start the development server
+`python manage.py runserver` to start the development server.
 
 Create/manage users through the admin.
 

@@ -2,7 +2,6 @@ from django.http import HttpResponse
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from pickup.models import Transaction, Item, Note
-from pickup.forms import AddTransactionForm
 from django.db import connection
 from django.contrib.auth.models import User
 import time
@@ -22,31 +21,36 @@ def transaction_info(transaction_number):
 
 ############ jQuery functions ############
 
-# Used to add items to a transaction, refreshes page on submit.  In every view.
+# Used to add items to a transaction, redirects to new transaction.  In every view.
 def add_form_view(request):
-    form = AddTransactionForm(request.POST or None)
+    if request.GET.get('status') == "add_transaction":
+        transaction_num = request.GET.get('transaction_num')
+        transaction_date = request.GET.get('transaction_date')
+        est_pickup_date = request.GET.get('est_pickup_date')
+        customer_name = request.GET.get('customer_name')
+        phone = request.GET.get('phone')
+        items = request.GET.get('items')
 
-    if form.is_valid():
-        save_it = form.save(commit=False)
-        save_it.save()
+        add_new_transaction = Transaction(transaction_num=transaction_num, 
+            transaction_date=transaction_date, est_pickup_date=est_pickup_date,
+            customer_name=customer_name, phone=phone)
+        add_new_transaction.save()
 
-        # Grab the transaction number and insert the items in the DB
-        if request.method == 'POST':
-            added_transaction = request.POST.get('transaction_num')
-            transaction_lookup = Transaction.objects.get(
-                transaction_num=added_transaction)
-            items = request.POST.get('items')
-            items = items.split(',')
-            item_id_list = []
-            for item in items:
-                if item != "":
-                    add_item = Item(desc=item,
-                                    transaction_num=transaction_lookup)
-                    add_item.save()
-
-        # Redirect to active view -- broken!
-        return render(request, 'pickup/active.html')
-
+        # Add all of the items to the transaction
+        if "," in items:
+            item_lists = items.split(",")
+            print item_lists
+            for item in item_lists:
+                pulled_transaction = Transaction(
+                    transaction_num=transaction_num)
+                add_new_item = Item(transaction_num=pulled_transaction,
+                                    desc=item)
+                add_new_item.save()
+        else:
+            pulled_transaction = Transaction(transaction_num=transaction_num)
+            add_new_item = Item(transaction_num=pulled_transaction,
+                                desc=item_lists)
+            add_new_item.save()
 
 # Delete items and send back the item count
 def trash_item(request):
@@ -183,7 +187,7 @@ def edit_transaction(request):
 
             # Cascading update does not work so um, run some queries?
             cursor = connection.cursor()
-            update_items_query = "UPDATE 'item' SET transaction_num = %s WHERE transaction_num = %s" % (
+            update_items_query = "UPDATE 'item' SET transaction_num_id = %s WHERE transaction_num_id = %s" % (
             edited_transaction_number, transaction_number)
             cursor.execute(update_items_query)
 
@@ -216,6 +220,7 @@ def edit_transaction(request):
                         transaction_num=new_transaction_num).update(
                         phone=returned_data[entry])
 
+        print new_transaction_num
         return new_transaction_num
 
 
