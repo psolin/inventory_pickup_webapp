@@ -62,15 +62,20 @@ def add_form_view(request):
                                 desc=item_lists)
             add_new_item.save()
 
+        print
+        print '%s added Transaction # %s' % (request.user, transaction_num)
+        print
+
 
 # Delete items and send back the item count
 
 def trash_item(request):
     if request.GET.get('status') == 'trash':
         trash_item = request.GET.get('item_id')
+        item_name = Item.objects.get(pk=trash_item)
+        print item_name.transaction_num
+        
         Item.objects.filter(itemid=trash_item).delete()
-
-        # (Eventually), itemid sent and the new count is returned.
 
         transaction_number = request.GET.get('transaction_number')
 
@@ -80,6 +85,10 @@ def trash_item(request):
             len(Item.objects.filter(transaction_num=pulled_transaction))
 
         # transaction_info(transaction_number) is an updated version of the status string
+
+        print
+        print '%s trashed Item # %s (%s)' % (request.user, trash_item, item_name)
+        print
 
         return (item_count, transaction_info(transaction_number))
 
@@ -130,6 +139,10 @@ def add_item(request):
 
         # Send back the generated itemid(s).
         # Remember, when an item is added, it changes the transaction to active automatically.
+
+        print
+        print '%s trashed Item # %s' % (request.user, trash_item)
+        print
 
         return (new_item_ids, item_count)
 

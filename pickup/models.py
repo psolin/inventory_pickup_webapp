@@ -42,14 +42,9 @@ class Transaction(models.Model):
             cursor = connection.cursor()
 
             # Return latest item pickup date
-
-            Item.objects.filter(transaction_num=self.pk)
-            final_pickup_query = \
-                """SELECT picked_up_on FROM 'item' WHERE 'Item'.transaction_num_id = %s ORDER BY picked_up_on DESC""" \
-                % self.transaction_num
-            cursor.execute(final_pickup_query)
-            results = cursor.fetchall()
-            return results[0][0].strftime('%A, %b. %-d, %Y')
+            final_pickup = Item.objects.filter(transaction_num=self.pk).order_by('-picked_up_on')[0]
+            final_pickup = final_pickup.picked_up_on
+            return final_pickup.strftime('%A, %b. %-d, %Y')
 
     def overdue(self):
 
