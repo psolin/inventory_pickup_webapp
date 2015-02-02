@@ -214,25 +214,12 @@ def edit_transaction(request):
             }
 
         # If the transaction number needs to be changed, do this first
-
         if transaction_number != edited_transaction_number:
 
             Transaction.objects.filter(transaction_num=transaction_number).update(transaction_num=edited_transaction_number)
-
-            # Cascading update does not work so um, run some queries?
-
-            cursor = connection.cursor()
-            update_items_query = \
-                "UPDATE 'item' SET transaction_num_id = %s WHERE transaction_num_id = %s" \
-                % (edited_transaction_number, transaction_number)
-            cursor.execute(update_items_query)
-
-            cursor = connection.cursor()
-            update_notes_query = \
-                "UPDATE 'note' SET transaction_num = %s WHERE transaction_num = %s" \
-                % (edited_transaction_number, transaction_number)
-            cursor.execute(update_notes_query)
-
+            pulled_transaction = Transaction.objects.get(pk=edited_transaction_number)
+            Item.objects.filter(transaction_num_id=transaction_number).update(transaction_num_id=pulled_transaction)
+            Note.objects.filter(transaction_num_id=transaction_number).update(transaction_num_id=pulled_transaction)
             new_transaction_num = edited_transaction_number
         else:
             new_transaction_num = transaction_number
@@ -293,10 +280,7 @@ def check_item(request):
         else:
 
             # Remove the date if there is actually a date there
-
-            cursor = connection.cursor()
-            cursor.execute("UPDATE 'item' SET picked_up_on = NULL WHERE itemid = %s"
-                           , [int(item_to_check)])
+            Item.objects.filter(pk=item_to_check).update(picked_up_on=None)
 
         pulled_transaction = \
             Transaction.objects.get(transaction_num=transaction_number)
