@@ -23,6 +23,17 @@
 {% endblock %}
 
 {% block content %}
+
+<div class="col-md-12 col-centered">
+<ul class="nav nav-pills">
+  <li class="active"><a href="#tab_a" data-toggle="pill">Transactions</a></li>
+<li><a href="#tab_b" data-toggle="pill">Items</a></li>
+</ul>
+
+<div class="tab-content">
+<!-- View Tab -->
+<div class="tab-pane active" id="tab_a">
+
 <div class="container-fluid">
     <div class="row">
             <div class="table-responsive">
@@ -52,6 +63,41 @@
         </div>
     </div>
 </div>
+</div>
+
+<div class="tab-pane fade" id="tab_b">
+    <div class="container-fluid">
+        <div class="row">
+                    <div class="table-responsive">
+            <table id="item-grid" class="table table-condensed table-hover table-striped">
+                <thead>
+                    <tr data-formatter="current_row">
+                        <th data-column-id="itemDesc" data-filterable="true" data-align="center" data-header-align="center">Item</th>
+                        <th data-column-id="itemCustomer" data-filterable="true">Customer</th>
+                        <th data-column-id="itemTransNum" data-formatter="link" data-filterable="true">Transaction #</th>
+                        <th data-column-id="itemTransDate" data-filterable="true">Transaction Date</th>
+                        <th data-column-id="itemOverdue" data-filterable="true">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  {% for i in item_list %}
+                    <tr>
+                        <td>{{ i.desc }}</td>
+                        <td>{{ i.transaction_num.customer_name }}</td>
+                        <td>{{ i.transaction_num }}</td>
+                        <td>{{ i.transaction_num.transaction_date }}</td>
+                        <td>{{ i.status }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+        <!--/div-->
+    </div>
+        </div>
+    </div>
+</div>
+
+</div>
 
 
 
@@ -69,6 +115,27 @@ $("#grid").bootgrid(
 	        }
 	    }
 	});
+$("#item-grid").bootgrid(
+{
+    formatters: {
+            "link": function(column, row)
+            {
+                return '<a href="/transaction/' + row[column.id] + '">' + row[column.id] + '</a>';
+            },
+            "itemOverdue": function(column, row)
+            {
+                if (row[column.id] == "True")
+                {
+                    return "Yes";
+                }
+                else
+                {
+                    return "No";
+                
+                }
+            }
+        }
+    });
 </script>
 
 {% endblock %}

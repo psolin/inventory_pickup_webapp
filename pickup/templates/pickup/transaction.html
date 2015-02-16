@@ -28,8 +28,8 @@
 	<li><strong>Status</strong>: <span id="info_status">{{ transaction.status }}</span></li>
 	<li><strong>Customer</strong>: {{ transaction.customer_name }}</li>
 	<li><strong>Phone</strong>: {{ transaction.pretty_phone }}
-	<li><strong>Transaction Date</strong>: {{ transaction.transaction_date|date:'l, M. d, Y' }} {% if ',' not in transaction.transaction_date|naturalday %}({{ transaction.transaction_date|naturalday }}){% endif %} </li>
-	<li><strong>Estimated Pickup</strong>: {{ transaction.est_pickup_date|date:'l, M. d, Y' }} {% if ',' not in transaction.est_pickup_date|naturalday %}({{ transaction.est_pickup_date|naturalday }}){% endif %}</li>
+	<li><strong>Transaction Date</strong>: {{ transaction.transaction_date|date:'l, M. d, Y' }}</li>
+	<li><strong>Estimated Pickup</strong>: {{ transaction.est_pickup_date|date:'l, M. d, Y' }}</li>
 
 	{% if transaction.status == "Completed" %}
 	<span id="info_actual_pickup"><li><strong>Actual Pickup</strong>: {{ transaction.final_pickup_date }}</li></span>
@@ -234,14 +234,14 @@
        <div class="form-group">
          <div class="col-sm-6">
            <label for="editCustomer">Customer Name</label>
-           <input id="editCustomer" class="form-control input-group-lg reg_name" type="text" name="editCustomer" title="Enter first name" placeholder="Full Name" id="editCustomer" initial="{{ transaction.customer_name }}" value="{{ transaction.customer_name }}">
+           <input id="editCustomer" class="form-control input-group-lg reg_name" type="text" name="editCustomer" placeholder="Full Name" id="editCustomer" initial="{{ transaction.customer_name }}" value="{{ transaction.customer_name }}">
          </div>
 
          <span class="hidden-lg hidden-md hidden-sm"><br /></span>
 
          <div class="col-sm-6">
            <label for="editPhone">Phone Number</label>
-           <input id="editPhone" class="form-control input-group-lg reg_name" type="text" name="editPhone" title="Enter last name" placeholder="Phone" id="editPhone" pattern="\d*" initial="{{ transaction.phone }}" value="{{ transaction.phone }}">
+           <input id="editPhone" class="form-control input-group-lg reg_name" type="text" name="editPhone" placeholder="Phone" id="editPhone" pattern="\d*" initial="{{ transaction.phone }}" value="{{ transaction.phone }}">
          </div>
       </div>
       <div class="modal-footer">

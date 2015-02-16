@@ -82,15 +82,6 @@ class Item(models.Model):
     desc = models.CharField(max_length=255)
     picked_up_on = models.DateField(blank=True, null=True)
 
-    class Meta:
-
-        db_table = 'item'
-
-    def __str__(self):  # __unicode__ on Python 2
-        return str(self.desc)
-
-    # Override date string with "Forfeited" if never picked up
-
     def status(self):
         results = \
             Transaction.objects.get(transaction_num=self.transaction_num.pk)
@@ -102,6 +93,14 @@ class Item(models.Model):
         else:
             return 'In Inventory'
 
+    class Meta:
+
+        db_table = 'item'
+
+    def __str__(self):  # __unicode__ on Python 2
+        return str(self.desc)
+
+    # Override date string with "Forfeited" if never picked up
 
 class Note(models.Model):
 

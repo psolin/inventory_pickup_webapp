@@ -15,6 +15,11 @@ body {
   padding: 1em;
 }
 
+.modal-ios {
+    position: absolute;
+    overflow: visible
+}
+
 #top_inline
 {
   position: relative;
@@ -169,10 +174,6 @@ html {
   /* Set the fixed height of the footer here */
   height: 1em;
   font-size: .75em;
-}
-
-.modal {
-  background-color: rgba(0,0,0,.75);
 }
 
 .trans-pills {

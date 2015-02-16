@@ -48,7 +48,6 @@ def add_form_view(request):
 
         if ',' in items:
             item_lists = items.split(',')
-            print item_lists
             for item in item_lists:
                 pulled_transaction = \
                     Transaction(transaction_num=transaction_num)
@@ -175,6 +174,10 @@ def add_note(request):
 
         # ... and the new note count for the transaction.
 
+        print
+        print '%s added a Note' % (request.user)
+        print
+
         note_count = \
             len(Note.objects.filter(transaction_num=pulled_transaction))
 
@@ -190,10 +193,10 @@ def edit_item(request):
         new_desc = request.GET.get('new_desc')
         Item.objects.filter(itemid=item_id).update(desc=new_desc)
 
+        print
+        print '%s edited Item # %s' % (request.user, item_id)
+        print
 
-    # send new active count and all of that jazz
-
-# Edit individual items
 
 def edit_item_date(request):
     if request.GET.get('status') == 'edit_item_date':
@@ -202,6 +205,10 @@ def edit_item_date(request):
         transaction_number = request.GET.get('transaction_number')
         Item.objects.filter(itemid=item_id).update(picked_up_on=new_date)
         new_item_date = Item.objects.get(itemid=item_id)
+
+        print
+        print '%s changed Item #%s date to %s' (request.user, item_id, new_date)
+        print
 
         return (new_item_date.status(),
                 transaction_info(transaction_number))
@@ -253,7 +260,6 @@ def edit_transaction(request):
 
                     Transaction.objects.filter(transaction_num=new_transaction_num).update(phone=returned_data[entry])
 
-        print new_transaction_num
         return new_transaction_num
 
 
@@ -274,6 +280,10 @@ def forfeit(request):
         else:
 
             Transaction.objects.filter(transaction_num=transaction_number).update(forfeit_date=None)
+        
+        print
+        print '%s forfeited transaction # %s' % (request.user, transaction_number)
+        print
 
 
 def check_item(request):
@@ -322,6 +332,10 @@ def remove_transaction(request):
             Transaction.objects.get(transaction_num=transaction_number)
         pulled_transaction.delete()
 
+        print
+        print '%s removed transaction # %s' % (request.user, transaction_number)
+        print
+
 
 ############ And now, the views ############
 
@@ -339,14 +353,29 @@ def history(request):
     t = Transaction.objects.all().order_by('-transaction_date',
             '-transaction_num')
 
+    i = Item.objects.all().order_by('-transaction_num')
+
+
+
     # Sort to only show un-active items
 
     u = []
-    for item in t:
-        if item.status() != 'Active':
-            u.append(item)
+    for transaction in t:
+        if transaction.status() != 'Active':
+            u.append(transaction)
+
+    v = []
+    for item in i:
+        item_status = Transaction(pk=item.transaction_num)
+        if item_status != 'Active':
+            v.append(item)
+
+    data['item_list'] = v
 
     data['transaction_list'] = u
+
+    for item in v:
+        print item.status()
 
     add_form = add_form_view(request)
     data['add_form'] = add_form
