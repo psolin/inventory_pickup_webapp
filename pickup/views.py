@@ -58,7 +58,7 @@ def add_form_view(request):
             pulled_transaction = \
                 Transaction(transaction_num=transaction_num)
             add_new_item = Item(transaction_num=pulled_transaction,
-                                desc=item_lists)
+                                desc=items)
             add_new_item.save()
 
         print
@@ -73,7 +73,7 @@ def trash_item(request):
         trash_item = request.GET.get('item_id')
         item_name = Item.objects.get(pk=trash_item)
         print item_name.transaction_num
-        
+
         Item.objects.filter(itemid=trash_item).delete()
 
         transaction_number = request.GET.get('transaction_number')
@@ -280,7 +280,7 @@ def forfeit(request):
         else:
 
             Transaction.objects.filter(transaction_num=transaction_number).update(forfeit_date=None)
-        
+
         print
         print '%s forfeited transaction # %s' % (request.user, transaction_number)
         print
