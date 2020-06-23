@@ -26,7 +26,8 @@ def transaction_info(transaction_number):
 
 ############ jQuery functions ############
 
-# Used to add items to a transaction, redirects to new transaction.  In every view.
+# Used to add items to a transaction, redirects to new transaction.  In
+# every view.
 
 def add_form_view(request):
     if request.GET.get('status') == 'add_transaction':
@@ -61,9 +62,9 @@ def add_form_view(request):
                                 desc=items)
             add_new_item.save()
 
-        print
-        print '%s added Transaction # %s' % (request.user, transaction_num)
-        print
+        print()
+        print('%s added Transaction # %s' % (request.user, transaction_num))
+        print()
 
 
 # Delete items and send back the item count
@@ -72,7 +73,7 @@ def trash_item(request):
     if request.GET.get('status') == 'trash':
         trash_item = request.GET.get('item_id')
         item_name = Item.objects.get(pk=trash_item)
-        print item_name.transaction_num
+        print(item_name.transaction_num)
 
         Item.objects.filter(itemid=trash_item).delete()
 
@@ -83,11 +84,13 @@ def trash_item(request):
         item_count = \
             len(Item.objects.filter(transaction_num=pulled_transaction))
 
-        # transaction_info(transaction_number) is an updated version of the status string
+        # transaction_info(transaction_number) is an updated version of the
+        # status string
 
-        print
-        print '%s trashed Item # %s (%s)' % (request.user, trash_item, item_name)
-        print
+        print()
+        print('%s trashed Item # %s (%s)' %
+              (request.user, trash_item, item_name))
+        print()
 
         return (item_count, transaction_info(transaction_number))
 
@@ -137,11 +140,12 @@ def add_item(request):
             len(Item.objects.filter(transaction_num=pulled_transaction))
 
         # Send back the generated itemid(s).
-        # Remember, when an item is added, it changes the transaction to active automatically.
+        # Remember, when an item is added, it changes the transaction to active
+        # automatically.
 
-        print
-        print '%s trashed Item # %s' % (request.user, trash_item)
-        print
+        print()
+        print('%s trashed Item # %s' % (request.user, trash_item))
+        print()
 
         return (new_item_ids, item_count)
 
@@ -174,9 +178,9 @@ def add_note(request):
 
         # ... and the new note count for the transaction.
 
-        print
-        print '%s added a Note' % (request.user)
-        print
+        print()
+        print('%s added a Note' % (request.user))
+        print()
 
         note_count = \
             len(Note.objects.filter(transaction_num=pulled_transaction))
@@ -193,9 +197,9 @@ def edit_item(request):
         new_desc = request.GET.get('new_desc')
         Item.objects.filter(itemid=item_id).update(desc=new_desc)
 
-        print
-        print '%s edited Item # %s' % (request.user, item_id)
-        print
+        print()
+        print('%s edited Item # %s' % (request.user, item_id))
+        print()
 
 
 def edit_item_date(request):
@@ -206,9 +210,10 @@ def edit_item_date(request):
         Item.objects.filter(itemid=item_id).update(picked_up_on=new_date)
         new_item_date = Item.objects.get(itemid=item_id)
 
-        print
-        print '%s changed Item #%s date to %s' (request.user, item_id, new_date)
-        print
+        print()
+        print('%s changed Item #%s date to %s' % (
+            request.user, item_id, new_date))
+        print()
 
         return (new_item_date.status(),
                 transaction_info(transaction_number))
@@ -231,34 +236,42 @@ def edit_transaction(request):
             'est_pickup_date': est_pickup_date,
             'customer_name': customer_name,
             'phone': phone_number,
-            }
+        }
 
         # If the transaction number needs to be changed, do this first
         if transaction_number != edited_transaction_number:
 
-            Transaction.objects.filter(transaction_num=transaction_number).update(transaction_num=edited_transaction_number)
-            pulled_transaction = Transaction.objects.get(pk=edited_transaction_number)
-            Item.objects.filter(transaction_num_id=transaction_number).update(transaction_num_id=pulled_transaction)
-            Note.objects.filter(transaction_num_id=transaction_number).update(transaction_num_id=pulled_transaction)
+            Transaction.objects.filter(transaction_num=transaction_number).update(
+                transaction_num=edited_transaction_number)
+            pulled_transaction = Transaction.objects.get(
+                pk=edited_transaction_number)
+            Item.objects.filter(transaction_num_id=transaction_number).update(
+                transaction_num_id=pulled_transaction)
+            Note.objects.filter(transaction_num_id=transaction_number).update(
+                transaction_num_id=pulled_transaction)
             new_transaction_num = edited_transaction_number
         else:
             new_transaction_num = transaction_number
 
         for entry in returned_data:
             if returned_data[entry] != '':
-                print returned_data[entry]
+                print(returned_data[entry])
                 if entry == 'transaction_date':
 
-                    Transaction.objects.filter(transaction_num=new_transaction_num).update(transaction_date=returned_data[entry])
+                    Transaction.objects.filter(transaction_num=new_transaction_num).update(
+                        transaction_date=returned_data[entry])
                 elif entry == 'est_pickup_date':
 
-                    Transaction.objects.filter(transaction_num=new_transaction_num).update(est_pickup_date=returned_data[entry])
+                    Transaction.objects.filter(transaction_num=new_transaction_num).update(
+                        est_pickup_date=returned_data[entry])
                 elif entry == 'customer_name':
 
-                    Transaction.objects.filter(transaction_num=new_transaction_num).update(customer_name=returned_data[entry])
+                    Transaction.objects.filter(transaction_num=new_transaction_num).update(
+                        customer_name=returned_data[entry])
                 elif entry == 'phone':
 
-                    Transaction.objects.filter(transaction_num=new_transaction_num).update(phone=returned_data[entry])
+                    Transaction.objects.filter(transaction_num=new_transaction_num).update(
+                        phone=returned_data[entry])
 
         return new_transaction_num
 
@@ -271,19 +284,23 @@ def forfeit(request):
         pulled_transaction = \
             Transaction.objects.get(transaction_num=transaction_number)
 
-        # If the transaction is not forfeited, add today's date.  Otherwise, clear it.
+        # If the transaction is not forfeited, add today's date.  Otherwise,
+        # clear it.
 
         if pulled_transaction.forfeit_date == None:
             today = time.strftime('%Y-%m-%d')
 
-            Transaction.objects.filter(transaction_num=transaction_number).update(forfeit_date=today)
+            Transaction.objects.filter(
+                transaction_num=transaction_number).update(forfeit_date=today)
         else:
 
-            Transaction.objects.filter(transaction_num=transaction_number).update(forfeit_date=None)
+            Transaction.objects.filter(
+                transaction_num=transaction_number).update(forfeit_date=None)
 
-        print
-        print '%s forfeited transaction # %s' % (request.user, transaction_number)
-        print
+        print()
+        print('%s forfeited transaction # %s' %
+              (request.user, transaction_number))
+        print()
 
 
 def check_item(request):
@@ -299,7 +316,8 @@ def check_item(request):
             # If the item is not picked up (there is no date), update the date
 
             pickup_day = time.strftime('%Y-%m-%d')
-            Item.objects.filter(itemid=item_to_check).update(picked_up_on=pickup_day)
+            Item.objects.filter(itemid=item_to_check).update(
+                picked_up_on=pickup_day)
         else:
 
             # Remove the date if there is actually a date there
@@ -332,9 +350,10 @@ def remove_transaction(request):
             Transaction.objects.get(transaction_num=transaction_number)
         pulled_transaction.delete()
 
-        print
-        print '%s removed transaction # %s' % (request.user, transaction_number)
-        print
+        print()
+        print('%s removed transaction # %s' %
+              (request.user, transaction_number))
+        print()
 
 
 ############ And now, the views ############
@@ -345,17 +364,15 @@ def history(request):
 
     # 404 if not logged in
 
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return render(request, 'pickup/404.html')
 
     data = {}
 
     t = Transaction.objects.all().order_by('-transaction_date',
-            '-transaction_num')
+                                           '-transaction_num')
 
     i = Item.objects.all().order_by('-transaction_num')
-
-
 
     # Sort to only show un-active items
 
@@ -375,7 +392,7 @@ def history(request):
     data['transaction_list'] = u
 
     for item in v:
-        print item.status()
+        print(item.status())
 
     add_form = add_form_view(request)
     data['add_form'] = add_form
@@ -389,7 +406,7 @@ def transaction(request, transaction=None):
 
     # 404 if not logged in
 
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return render(request, 'pickup/404.html')
 
     data = {}
@@ -419,7 +436,7 @@ def transaction(request, transaction=None):
 
     n = \
         Note.objects.filter(transaction_num=transaction).order_by('-date'
-            )
+                                                                  )
     data['note_list'] = n
 
     add_form = add_form_view(request)
@@ -448,13 +465,13 @@ def active(request):
 
     # 404 if not logged in
 
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return render(request, 'pickup/404.html')
 
     data = {}
 
     t = Transaction.objects.all().order_by('-transaction_date',
-            '-transaction_num')
+                                           '-transaction_num')
     i = Item.objects.all()
 
     active_item_list = []
@@ -490,13 +507,13 @@ def home(request):
 
     # 404 if not logged in
 
-    if not request.user.is_authenticated():
-        return render(request, 'pickup/404.html')
+    if not request.user.is_authenticated:
+        return(render(request, 'pickup/404.html'))
 
     data = {}
 
     t = Transaction.objects.all().order_by('-transaction_date',
-            '-transaction_num')
+                                           '-transaction_num')
 
     overdue_list = []
     for transaction in t:

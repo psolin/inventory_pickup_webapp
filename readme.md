@@ -7,7 +7,7 @@ Customers make a sale, which are referred to as transactions.  Transactions have
 
 
 ##How to use
-Install Django 1.7+.
+Install Django 2.0+.
 
 Download and `cd` into the repository.
 

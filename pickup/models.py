@@ -42,7 +42,8 @@ class Transaction(models.Model):
             cursor = connection.cursor()
 
             # Return latest item pickup date
-            final_pickup = Item.objects.filter(transaction_num=self.pk).order_by('-picked_up_on')[0]
+            final_pickup = Item.objects.filter(
+                transaction_num=self.pk).order_by('-picked_up_on')[0]
             final_pickup = final_pickup.picked_up_on
             return final_pickup.strftime('%A, %b. %-d, %Y')
 
@@ -52,7 +53,8 @@ class Transaction(models.Model):
 
         if self.status() == 'Active' and self.est_pickup_date != None:
 
-            # If the estimated pickup date is greater than today's date, then it's overdue
+            # If the estimated pickup date is greater than today's date, then
+            # it's overdue
 
             now = datetime.now()
             todays_date = now.strftime('%Y-%m-%d')
@@ -78,7 +80,7 @@ class Item(models.Model):
 
     itemid = models.IntegerField(primary_key=True)
     transaction_num = models.ForeignKey(Transaction,
-            on_delete=models.CASCADE)
+                                        on_delete=models.CASCADE)
     desc = models.CharField(max_length=255)
     picked_up_on = models.DateField(blank=True, null=True)
 
@@ -102,14 +104,15 @@ class Item(models.Model):
 
     # Override date string with "Forfeited" if never picked up
 
+
 class Note(models.Model):
 
     noteid = models.IntegerField(primary_key=True)
     transaction_num = models.ForeignKey('Transaction',
-            db_column='transaction_num', on_delete=models.CASCADE)
+                                        db_column='transaction_num', on_delete=models.CASCADE)
     content = models.CharField(max_length=255)
     date = models.DateTimeField(blank=True, null=True)
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
 

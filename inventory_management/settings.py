@@ -10,7 +10,11 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+#from django.contrib.sites.models import RequestSite
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+SITE_ID = 1
 
 #import pymysql
 #pymysql.install_as_MySQLdb()
@@ -27,6 +31,24 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
+ACCOUNT_ACTIVATION_DAYS = 7 # One-week activation window
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
 ALLOWED_HOSTS = ['*']
 
 # Application definition
@@ -40,15 +62,15 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django.contrib.sites',
     'pickup'
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -89,8 +111,8 @@ ACCOUNT_ACTIVATION_DAYS = 7
 REGISTRATION_EMAIL_SUBJECT_PREFIX = '[Django Registration Test App]'
 SEND_ACTIVATION_EMAIL = True
 REGISTRATION_AUTO_LOGIN = False
-LOGIN_REDIRECT_URL = '/home'
-
+#LOGIN_REDIRECT_URL = '/home'
+#LOGOUT_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
