@@ -42,6 +42,8 @@
 }
 .bootstrap-tagsinput .badge {
   margin: 2px 0;
+  margin-right: 3px;
+  font-size: 95%;
   padding:5px 8px;
 }
 .bootstrap-tagsinput .badge [data-role="remove"] {
@@ -49,17 +51,19 @@
   cursor: pointer;
 }
 .bootstrap-tagsinput .badge [data-role="remove"]:after {
-  content: "×";
+  content: "✕";
+  /* content: "×"; 
   padding: 0px 4px;
   background-color:rgba(0, 0, 0, 0.1);
   border-radius:50%;
-  font-size:13px
+  font-size:13px; */
 }
 .bootstrap-tagsinput .badge [data-role="remove"]:hover:after {
-
-  background-color:rgba(0, 0, 0, 0.62);}
+  color:red;
+  transition: 0.4s;
+}
 .bootstrap-tagsinput .badge [data-role="remove"]:hover:active {
-  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  color:white;
 }
 
 .tt-menu {
