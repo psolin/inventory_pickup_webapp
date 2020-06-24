@@ -1,0 +1,159 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>{% block title %}{% endblock %}</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+    <!-- Bootstrap -->
+    <!-- <link href="/static/bootstrap-4.5.0-dist/css/bootstrap.min.css" rel="stylesheet"> -->
+
+    <!-- Custom CSS -->
+    <link href="/static/custom.css" rel="stylesheet">
+
+    {% load i18n %}
+
+    <!-- pickadate.js CSS -->
+    <link href="/static/pickadate.js-master/lib/themes/classic.css" rel="stylesheet">
+    <link href="/static/pickadate.js-master/lib/themes/classic.date.css" rel="stylesheet">
+    <link href="/static/pickadate.js-master/lib/themes/classic.time.css" rel="stylesheet">
+
+    <!-- Bootstrap Tagsinput -->
+    <link href="/static/bootstrap-tagsinput-master/src/bootstrap-tagsinput.css" rel="stylesheet">
+
+    <!-- Bootgrid -->
+    <link href="/static/jquery-bootgrid/jquery.bootgrid.css" rel="stylesheet">
+
+  </head>
+  <body>
+
+      <!-- Header text -->
+      <div class="col-xs-6"><span class="h2">{% block header %} {% endblock %}</span></div>
+
+
+    {% if perms.pickup.add_transaction %}
+      <!-- Add Transaction Modal Button -->
+      <div class="col-xs-6">
+      <button type="button" id="add_button" class="btn btn-default btn-md" data-toggle="modal" data-target="#AddTransactionModal">
+        <span class="glyphicon glyphicon-plus"></span>
+      </button>
+      </div>
+
+    {% endif %}
+    </div>
+        </div>
+
+    <br />
+
+    <!-- Add Transaction Modal -->
+    <div class="modal fade" id="AddTransactionModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-md">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" onclick="add_form.reset();"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel">Add Transaction</h4>
+          </div>
+          <div class="modal-body">
+
+          <!-- Form inputs start here -->
+          <form name="add_form" id="add_form" class="form-horizontal" method="POST" action="">
+
+          {% csrf_token %}
+          <div class="input-group">
+            <span class="input-group-addon">Transaction #</span>
+            <input id="id_transaction_num" name="transaction_num" type="text" class="form-control" pattern="\d*" placeholder="ex: 41111">
+          </div>
+
+          <br />
+
+          <div class="form-group">
+            <div class="col-lg-12">
+            <label for="id_transaction_date">Transaction Date</label>
+            <input type="text" class="form-control datepicker" id="id_transaction_date" name="transaction_date">
+            <input type="hidden" class="form-control datepicker hidden" id="id_transaction_date_hidden" name="prefix__transaction_date__suffix">
+          </div>
+          </div>
+
+          <div class="form-group">
+          <div class="col-lg-12">
+            <label for="id_est_pickup_date">Est. Pickup Date</label>
+            <input type="text" class="form-control datepicker" id="id_est_pickup_date" name="est_pickup_date">
+            <input type="hidden" class="form-control datepicker hidden" id="id_est_pickup_date_hidden" name="prefix__est_pickup_date__suffix">
+          </div>
+          </div>
+
+          <div class="form-group">
+            <div class="col-sm-6">
+              <label for="id_customer_name">Customer Name</label>
+              <input id="id_customer_name" class="form-control input-group-lg reg_name" type="text" title="Enter first name" placeholder="Full Name" id="id_customer_name" name="customer_name">
+            </div>
+            <!-- Need a br tag in the non-xs modes to separate the fields -->
+            <span class="hidden-lg hidden-md hidden-sm"><br /></span>
+            <div class="col-sm-6">
+              <label for="addPhone">Phone Number</label>
+              <input id="addPhone" pattern="\d*" class="form-control input-group-lg reg_name" type="text" name="phone" title="Enter last name" placeholder="Phone" id="id_phone">
+            </div>
+            </div>
+
+          <div class="form-group">
+            <div class="col-lg-12">
+              <label for="items">Items</label>
+              <br />
+              <input id="id_items" name="items" data-role="tagsinput"/>
+              <p id="item_add_comment"><small>Separate with commas</small></p>
+            </div>
+          </div>
+
+
+          <!-- Extra space for the date picker on mobile -->
+          <br />
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" onclick="this.form.reset();">Cancel</button>
+            <button type="button" class="btn btn-primary" value="Add" id="add_transaction_button"/>Add</button>
+          </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid">
+      <div class="row">
+      {% block content%}
+      {% endblock %}
+      </div>
+    </div>
+
+    <!-- Jquery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+
+    <!-- Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+
+    <!-- Bootstrap -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+
+    <!--pickadate.js -->
+    <script src="/static/pickadate.js-master/lib/picker.js"></script>
+    <script src="/static//pickadate.js-master/lib/picker.date.js"></script>
+    <script src="/static//pickadate.js-master/lib/legacy.js"></script>
+
+    <!-- JQuery Bootgrid -->
+    <script src="/static/jquery-bootgrid/jquery.bootgrid.min.js"></script>
+
+    <!-- Bootstrap Tagsinput -->
+    <script src="/static/bootstrap-tagsinput-master/src/bootstrap-tagsinput.js"></script>
+
+    <!-- https://github.com/Tavicu/bootstrap-confirmation -->
+    <script src="/static/Bootstrap-Confirmation-master/src/confirmation.js"></script>
+
+
+   {% block custom_scripts %}
+   {% endblock %}
+  </body>
+</html>

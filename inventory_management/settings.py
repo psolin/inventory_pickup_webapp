@@ -110,8 +110,8 @@ ACCOUNT_ACTIVATION_DAYS = 7
 REGISTRATION_EMAIL_SUBJECT_PREFIX = '[Django Registration Test App]'
 SEND_ACTIVATION_EMAIL = True
 REGISTRATION_AUTO_LOGIN = False
-#LOGIN_REDIRECT_URL = '/home'
-#LOGOUT_REDIRECT_URL = '/'
+LOGIN_URL = 'login' 
+LOGOUT_URL = 'logout'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 

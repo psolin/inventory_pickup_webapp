@@ -528,6 +528,11 @@ def home(request):
     return render(request, 'pickup/home.html', data)
 
 
+def login(request):
+
+    return render(request, 'pickup/registration/login.html')
+
+
 # 404 Template
 
 def handler404(request):

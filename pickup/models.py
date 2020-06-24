@@ -79,8 +79,7 @@ class Transaction(models.Model):
 class Item(models.Model):
 
     itemid = models.IntegerField(primary_key=True)
-    transaction_num = models.ForeignKey(Transaction,
-                                        on_delete=models.CASCADE)
+    transaction_num = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     desc = models.CharField(max_length=255)
     picked_up_on = models.DateField(blank=True, null=True)
 
