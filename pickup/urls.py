@@ -17,4 +17,5 @@ urlpatterns = [  # login form
             name='transaction'),
     path('home/', views.home, name='home'),
     path('', views.home, name='home'),
+    path('signup/', TemplateView.as_view(template_name="pickup/signup.html"))
 ]

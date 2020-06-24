@@ -1,12 +1,14 @@
-{% extends 'base.html' %}
+{% extends 'pickup/outside_base.html' %}
 
-{% block title %}Sign Up{% endblock %}
+{% block title %}Sign Page{% endblock title %}
 
-{% block content %}
-  <h2>Sign up</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Sign up</button>
-  </form>
-{% endblock %}
+{% block content %} 
+    <h2>Sign Page</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Register</button>
+        <br><br>
+        <a href="{% url 'home' %}">Home</a>
+    </form>
+{% endblock content %}
