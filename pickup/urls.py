@@ -1,10 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from django.views.generic import TemplateView
-from django.contrib.auth import views as auth_views
-from django.contrib.auth import authenticate, login, logout
 from django.urls import path, re_path
-from django.contrib.auth.views import LoginView
 
 from pickup import views
 

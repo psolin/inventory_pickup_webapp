@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from django.http import HttpResponse
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from pickup.models import Transaction, Item, Note
 from django.db import connection
@@ -505,10 +505,10 @@ def active(request):
 
 def home(request):
 
-    # 404 if not logged in
+    # login screen if not logged in
 
     if not request.user.is_authenticated:
-        return(render(request, 'pickup/404.html'))
+        return(render(request, 'pickup/login.html'))
 
     data = {}
 
@@ -536,7 +536,7 @@ def login(request):
 # 404 Template
 
 def handler404(request):
-    response = render_to_response('pickup/404.html', {},
+    response = render('pickup/404.html', {},
                                   context_instance=RequestContext(request))
     response.status_code = 404
     return response

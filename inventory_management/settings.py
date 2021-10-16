@@ -10,14 +10,15 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-#from django.contrib.sites.models import RequestSite
+
+# from django.contrib.sites.models import RequestSite
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 SITE_ID = 1
 
-#import pymysql
-#pymysql.install_as_MySQLdb()
+# import pymysql
+# pymysql.install_as_MySQLdb()
 
 
 # Quick-start development settings - unsuitable for production
@@ -31,7 +32,7 @@ DEBUG = True
 
 TEMPLATE_DEBUG = True
 
-ACCOUNT_ACTIVATION_DAYS = 7 # One-week activation window
+ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window
 
 TEMPLATES = [
     {
@@ -98,7 +99,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
@@ -110,7 +110,7 @@ ACCOUNT_ACTIVATION_DAYS = 7
 REGISTRATION_EMAIL_SUBJECT_PREFIX = '[Django Registration Test App]'
 SEND_ACTIVATION_EMAIL = True
 REGISTRATION_AUTO_LOGIN = False
-LOGIN_URL = 'login' 
+LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

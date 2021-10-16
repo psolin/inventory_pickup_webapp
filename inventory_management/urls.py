@@ -1,12 +1,7 @@
 from django.contrib import admin
-from django.urls import include, path, re_path
-from pickup.views import home
-from django.views.generic import TemplateView
-from django.contrib.auth import views as auth_views
-from django.urls import path, re_path
 from django.contrib.auth.views import LoginView
-
-from pickup import views
+from django.urls import include
+from django.urls import path
 
 urlpatterns = [
     path('', include('pickup.urls')),

@@ -1,13 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from django.contrib import admin
 from django.contrib.auth.models import User
-from django.db import models, connection
+from django.db import models
 from datetime import datetime
 
 
 class Transaction(models.Model):
-
     transaction_num = models.IntegerField(primary_key=True)
     customer_name = models.CharField(max_length=255, blank=True)
     transaction_date = models.DateField(blank=True, null=True)
@@ -39,7 +37,6 @@ class Transaction(models.Model):
 
     def final_pickup_date(self):
         if self.status() == 'Completed':
-            cursor = connection.cursor()
 
             # Return latest item pickup date
             final_pickup = Item.objects.filter(
@@ -51,7 +48,7 @@ class Transaction(models.Model):
 
         # Only if the transaction is active:
 
-        if self.status() == 'Active' and self.est_pickup_date != None:
+        if self.status() == 'Active' and self.est_pickup_date is not None:
 
             # If the estimated pickup date is greater than today's date, then
             # it's overdue
@@ -68,7 +65,7 @@ class Transaction(models.Model):
     def pretty_phone(self):
         if len(self.phone) == 10:
             phone_string = '(' + self.phone[0:3] + ') ' \
-                + self.phone[3:6] + '-' + self.phone[6:10]
+                           + self.phone[3:6] + '-' + self.phone[6:10]
             return phone_string
         else:
             return self.phone
@@ -77,7 +74,6 @@ class Transaction(models.Model):
 # Create your models here.
 
 class Item(models.Model):
-
     itemid = models.IntegerField(primary_key=True)
     transaction_num = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     desc = models.CharField(max_length=255)
@@ -88,7 +84,7 @@ class Item(models.Model):
             Transaction.objects.get(transaction_num=self.transaction_num.pk)
         if self.picked_up_on is not None:
             return 'Picked up %s' \
-                % self.picked_up_on.strftime('%A, %b. %-d, %Y')
+                   % self.picked_up_on.strftime('%A, %b. %-d, %Y')
         elif results.forfeit_date is not None:
             return 'Forfeited'
         else:
@@ -105,7 +101,6 @@ class Item(models.Model):
 
 
 class Note(models.Model):
-
     noteid = models.IntegerField(primary_key=True)
     transaction_num = models.ForeignKey('Transaction',
                                         db_column='transaction_num', on_delete=models.CASCADE)
@@ -114,7 +109,6 @@ class Note(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
-
         db_table = 'note'
 
     def __str__(self):  # __unicode__ on Python 2
