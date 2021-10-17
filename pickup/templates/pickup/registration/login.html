@@ -1,34 +1,34 @@
 {% extends "pickup/base.html" %}
 
-<ul class="nav pull-right">
-    {% if user.is_authenticated %}
-    <li><a href="/profile/">{{ user }}</a></li>
-    <li>
-        <form style="margin:0;" action='/logout/' method="POST">
+{% block content %}
+<div class="card align-items-center">
+<article class="card-body">
+	<h4 class="card-title text-center mb-4 mt-1">Sign in</h4>
+	<hr>
+	<form action='/login/' method="POST">
         {% csrf_token %}
-            <input type="submit" value="Logout" class="btn btn-link" style="color:#777777;" /></li>
-            <input type="hidden" name="next" value="{{ current_path }}" />
-        </form>
-    </li>
-    {% else %}
-    <li class="dropdown">
-        <a class="dropdown-toggle" href="#" data-toggle="dropdown">Login <strong class="caret"></strong></a>
-        <div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
-            <form action='/login/' method="POST">
-            {% csrf_token %}
-                {% if form.errors %}
-                    {{ form.errors}}
-                {% endif %}
-                <label for="id_email">Login:</label>
-                <input type="text" name="email" id="id_email">
-                <br />
-                <label for="id_password">Pass:</label>
-                <input type="password" name="password" id="id_password">
-                <br />
-                <input class="btn btn-primary" type="submit" value="Login" />
-                <input type="hidden" name="next" value="{{ current_path }}" />
-            </form>
-        </div>
-    </li>
-</ul>
-    {% endif %}
+        {% if form.errors %}
+            {{ form.errors}}
+        {% endif %}
+	<div class="form-group">
+		<label for="id_email">Email address</label>
+	<div class="input-group">
+		<input name="email" id="id_email" class="form-control" placeholder="test@example.com" type="email">
+	</div> <!-- input-group.// -->
+	</div> <!-- form-group// -->
+	<div class="form-group">
+		<label for="id_password">Password</label>
+	<div class="input-group">
+	    <input class="form-control" name="password" id="id_password" placeholder="******" type="password">
+	</div> <!-- input-group.// -->
+	</div> <!-- form-group// -->
+	<div class="form-group">
+		<br/>
+	<button type="submit" value="Login" class="btn btn-primary btn-block"> Login  </button>
+	</div> <!-- form-group// -->
+	<p class="text-center"><a href="#" class="btn">Forgot password?</a></p>
+        <input type="hidden" name="next" value="{{ current_path }}" />
+	</form>
+</article>
+</div> <!-- card.// -->
+{% endblock %}

@@ -1,23 +1,23 @@
 {% extends "pickup/base.html" %}
 
 {% block content %}
-<div class="h-100 row align-items-center">
-    <div class="card" style="width: 18rem">
+<div class="card align-items-center">
 <article class="card-body">
 	<h4 class="card-title text-center mb-4 mt-1">Sign in</h4>
 	<hr>
-	<p class="text-success text-center">Some message goes here</p>
 	<form action='/login/' method="POST">
         {% csrf_token %}
         {% if form.errors %}
             {{ form.errors}}
         {% endif %}
 	<div class="form-group">
+		<label for="id_email">Email address</label>
 	<div class="input-group">
-		<input name="email" id="id_email" class="form-control" placeholder="Email or login" type="email">
+		<input name="email" id="id_email" class="form-control" placeholder="test@example.com" type="email">
 	</div> <!-- input-group.// -->
 	</div> <!-- form-group// -->
 	<div class="form-group">
+		<label for="id_password">Password</label>
 	<div class="input-group">
 	    <input class="form-control" name="password" id="id_password" placeholder="******" type="password">
 	</div> <!-- input-group.// -->
@@ -31,6 +31,4 @@
 	</form>
 </article>
 </div> <!-- card.// -->
-</div>
-</ul>
 {% endblock %}
