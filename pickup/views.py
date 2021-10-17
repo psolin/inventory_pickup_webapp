@@ -13,8 +13,7 @@ import datetime
 from django.utils.timezone import localtime
 
 
-############ Functions used to get info from the DB ############
-
+# Functions used to get info from the DB
 # Updating the transaction info pane
 
 def transaction_info(transaction_number):
@@ -24,7 +23,7 @@ def transaction_info(transaction_number):
             pulled_transaction.final_pickup_date())
 
 
-############ jQuery functions ############
+# jQuery functionx
 
 # Used to add items to a transaction, redirects to new transaction.  In
 # every view.
@@ -92,7 +91,7 @@ def trash_item(request):
               (request.user, trash_item, item_name))
         print()
 
-        return (item_count, transaction_info(transaction_number))
+        return item_count, transaction_info(transaction_number)
 
 
 # If we get a request to add items on the transaction page, add it to the DB.
@@ -147,7 +146,7 @@ def add_item(request):
         print('%s trashed Item # %s' % (request.user, trash_item))
         print()
 
-        return (new_item_ids, item_count)
+        return new_item_ids, item_count
 
 
 def add_note(request):
@@ -179,7 +178,7 @@ def add_note(request):
         # ... and the new note count for the transaction.
 
         print()
-        print('%s added a Note' % (request.user))
+        print('%s added a Note' % request.user)
         print()
 
         note_count = \
@@ -287,7 +286,7 @@ def forfeit(request):
         # If the transaction is not forfeited, add today's date.  Otherwise,
         # clear it.
 
-        if pulled_transaction.forfeit_date == None:
+        if pulled_transaction.forfeit_date is None:
             today = time.strftime('%Y-%m-%d')
 
             Transaction.objects.filter(
@@ -311,7 +310,7 @@ def check_item(request):
 
         pulled_item = Item.objects.get(itemid=item_to_check)
 
-        if pulled_item.picked_up_on == None:
+        if pulled_item.picked_up_on is None:
 
             # If the item is not picked up (there is no date), update the date
 
@@ -323,9 +322,6 @@ def check_item(request):
             # Remove the date if there is actually a date there
             Item.objects.filter(pk=item_to_check).update(picked_up_on=None)
 
-        pulled_transaction = \
-            Transaction.objects.get(transaction_num=transaction_number)
-        transaction_status = pulled_transaction.status()
         current_active = 0
 
         # Pull the item again in its new state
@@ -334,7 +330,7 @@ def check_item(request):
         item_status = pulled_item.status()
         item_date = pulled_item.picked_up_on
 
-        if item_date != None:
+        if item_date is not None:
             item_date = item_date.strftime('%A, %b. %d, %Y')
         else:
             item_date = ''
@@ -356,12 +352,11 @@ def remove_transaction(request):
         print()
 
 
-############ And now, the views ############
+# Views
 
 # Historical Inventory View
 
 def history(request):
-
     # 404 if not logged in
 
     if not request.user.is_authenticated:
@@ -394,7 +389,6 @@ def history(request):
     for item in v:
         print(item.status())
 
-    add_form = add_form_view(request)
     data['add_form'] = add_form
 
     return render(request, 'pickup/history.html', data)
@@ -403,7 +397,6 @@ def history(request):
 # Transaction View
 
 def transaction(request, transaction=None):
-
     # 404 if not logged in
 
     if not request.user.is_authenticated:
@@ -412,22 +405,22 @@ def transaction(request, transaction=None):
     data = {}
 
     edited_transaction = edit_transaction(request)
-    if edited_transaction != None:
+    if edited_transaction is not None:
         return HttpResponse(json.dumps(edited_transaction),
                             content_type='application/json')
 
     edited_date = edit_item_date(request)
-    if edited_date != None:
+    if edited_date is not None:
         return HttpResponse(json.dumps(edited_date),
                             content_type='application/json')
 
     item_count_response = trash_item(request)
-    if item_count_response != None:
+    if item_count_response is not None:
         return HttpResponse(json.dumps(item_count_response),
                             content_type='application/json')
 
     note_data = add_note(request)
-    if note_data != None:
+    if note_data is not None:
         return HttpResponse(json.dumps(note_data),
                             content_type='application/json')
 
@@ -438,17 +431,15 @@ def transaction(request, transaction=None):
         Note.objects.filter(transaction_num=transaction).order_by('-date'
                                                                   )
     data['note_list'] = n
-
-    add_form = add_form_view(request)
     data['add_form'] = add_form
 
     pk = add_item(request)
-    if pk != None:
+    if pk is not None:
         return HttpResponse(json.dumps(pk),
                             content_type='application/json')
 
     item_info = check_item(request)
-    if item_info != None:
+    if item_info is not None:
         return HttpResponse(json.dumps(item_info),
                             content_type='application/json')
 
@@ -462,7 +453,6 @@ def transaction(request, transaction=None):
 
 
 def active(request):
-
     # 404 if not logged in
 
     if not request.user.is_authenticated:
@@ -490,25 +480,25 @@ def active(request):
 
     v = []
     for transaction in t:
-        if transaction.overdue() == True:
+        if transaction.overdue() is True:
             v.append(transaction)
 
     data['overdue_list'] = v
-
     data['transaction_list'] = u
-
-    add_form = add_form_view(request)
     data['add_form'] = add_form
 
     return render(request, 'pickup/active.html', data)
 
 
-def home(request):
+def register(request):
+    return render(request, 'pickup/registration/signup.html')
 
+
+def home(request):
     # login screen if not logged in
 
     if not request.user.is_authenticated:
-        return(render(request, 'pickup/login.html'))
+        return render(request, 'pickup/registration/login.html')
 
     data = {}
 
@@ -517,19 +507,16 @@ def home(request):
 
     overdue_list = []
     for transaction in t:
-        if transaction.overdue() == True:
+        if transaction.overdue() is True:
             overdue_list.append(transaction)
 
     data['overdue_transactions'] = len(overdue_list)
-
-    add_form = add_form_view(request)
     data['add_form'] = add_form
 
     return render(request, 'pickup/home.html', data)
 
 
 def login(request):
-
     return render(request, 'pickup/registration/login.html')
 
 
@@ -537,6 +524,6 @@ def login(request):
 
 def handler404(request):
     response = render('pickup/404.html', {},
-                                  context_instance=RequestContext(request))
+                      context_instance=RequestContext(request))
     response.status_code = 404
     return response
