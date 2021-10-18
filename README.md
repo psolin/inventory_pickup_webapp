@@ -1,12 +1,12 @@
-#Django Inventory Pickup Web App
+# Django Inventory Pickup Web App
 Created to help keep track of sold/held customer merchandise.
 
 
-##General concepts
+## General concepts
 Customers make a sale, which are referred to as transactions.  Transactions have items.  These items are held by a store, and need to be tracked.
 
 
-##How to use
+## How to use
 Install Django 2.0+.
 
 Download and `cd` into the repository.
@@ -22,11 +22,17 @@ In settings.py, change the time zone (if necessary) and secret key.
 Create/manage users through the admin.
 
 
-##About
+## Screenshots
+
+![Add Transaction](img/sign-in.png)
+![Add Transaction](img/addtransaction.jpg)
+
+
+## About
 Additional features and minor bug fixes are on my mind.  Please feel free to fork or file a bug report.  Visit http://paulsolin.com for more information.
 
 
-##Projects/technologies utilized
+## Projects/technologies utilized
 Django -- https://www.djangoproject.com
 
 Bootstrap -- http://getbootstrap.com
