@@ -70,6 +70,9 @@ class Transaction(models.Model):
         else:
             return self.phone
 
+    class Meta:
+        db_table = 'transaction'
+
 
 # Create your models here.
 

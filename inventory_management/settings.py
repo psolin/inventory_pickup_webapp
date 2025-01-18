@@ -1,13 +1,3 @@
-"""
-Django settings for inventory_management project.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/1.7/topics/settings/
-
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.7/ref/settings/
-"""
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
@@ -16,9 +6,6 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 SITE_ID = 1
-
-# import pymysql
-# pymysql.install_as_MySQLdb()
 
 
 # Quick-start development settings - unsuitable for production
@@ -103,6 +90,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # For Registration
 

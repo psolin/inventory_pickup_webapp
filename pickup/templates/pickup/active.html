@@ -2,29 +2,8 @@
 
 {% block title %}Active{% endblock %}
 
-{% block header %}Active{% endblock %}
+{% block header %}
 
-{% block nav %}
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">Inventory Pickup</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="/home">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" href="/active">Active<span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/history">History</a>
-          </li>
-        </ul>
-      </div>
-    </nav>
 {% endblock %}
 
 {% block content %}
@@ -32,9 +11,9 @@
 <div class="col-md-12 col-centered">
 <ul class="nav nav-pills">
   <li class="nav-item"><a class="nav-link active" href="#tab_a" data-toggle="pill">Transactions</a>
-  </li> 
+  </li>
 <li class="nav-item"><a class="nav-link" href="#tab_b" data-toggle="pill">Items</a>
-  </li> 
+  </li>
 </ul>
 
 <div class="tab-content">

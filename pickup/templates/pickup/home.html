@@ -2,87 +2,56 @@
 
 {% block title %}Home{% endblock %}
 
-{% block header %}Welcome, {{ user.first_name }}!
-{% endblock %}
+{% block header %}{% endblock %}
 
-{% block nav %}
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="#">Inventory Pickup</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+{% block content %}
 
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="/home">Home<span class="sr-only">(current)</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/active">Active</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/history">History</a>
-      </li>
-    </ul>
+<div class="col-12 col-centered">
+  {% if overdue_transactions == 1 %}
+    <div class="alert alert-danger fade in" role="alert">
+      <span class="glyphicon glyphicon-time"></span>
+      There is one overdue transaction which needs your attention. <a href="/active" class="alert-link">View it here</a>.
+    </div>
+  {% elif overdue_transactions > 1 %}
+    <div class="alert alert-danger fade in" role="alert">
+      <span class="glyphicon glyphicon-time"></span>
+      There are {{ overdue_transactions }} overdue transactions which need your attention. <a href="/active" class="alert-link">View them here</a>.
+    </div>
+  {% endif %}
+
+<!-- Nav tabs -->
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="help-tab" data-bs-toggle="tab" data-bs-target="#help" type="button" role="tab" aria-controls="help" aria-selected="true">Help</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab" aria-controls="stats" aria-selected="false">Stats</button>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <!-- Help Tab -->
+  <div class="tab-pane fade show active" id="help" role="tabpanel" aria-labelledby="help-tab">
+    <br />
+    <h4>When Do I Use This?</h4>
+    <p>Use this app whenever customer items are moved to or from the "Sold" holding area.</p>
+    <br />
+    <h4>How Do I Do It?</h4>
+    <p>
+      Click the
+      <i class="bi bi-plus-circle"></i> button to add a transaction and its items. The transaction should appear under the 'Active' page.
+    </p>
+    <br />
+    <h4>What If I Have Issues?</h4>
+    <p>Send an email to <a href="mailto:paul@paulsolin.com">paul@paulsolin.com</a>, or file a bug at the repository over at <a href="http://github.com/psolin">github.com/psolin</a>.</p>
   </div>
-</nav>
-{% endblock %}
 
-{% block content%}
-<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-centered">
-	{% if overdue_transactions == 1 %}
-	<div class="alert alert-danger fade in" role="alert"><span class="glyphicon glyphicon-time"></span>
-	There is one overdue transaction which needs your attention.  <a href="/active" class="alert-link">View it here</a>.
-	</div>
-	{% elif overdue_transactions > 1 %}
-	<div class="alert alert-danger fade in" role="alert"><span class="glyphicon glyphicon-time"></span>
-	There are {{ overdue_transactions }} overdue transactions which need your attention.  <a href="/active" class="alert-link">View them here</a>.
-	</div>
-	{% endif %}
+  <!-- Stats Tab -->
+  <div class="tab-pane fade" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+    <br />
+    <p>Stats will go here. Some day.</p>
+  </div>
+</div>
 
-	<ul class="nav nav-pills">
-		<li class="nav-item">
-	  			<a class="nav-link active" href="#tab_a" data-toggle="pill">Stats</a>
-	  	</li>
-	  	<li class="nav-item">
-	  			<a class="nav-link" href="#tab_b" data-toggle="pill">Help</a>
-	  	</li>
-	  	<li class="nav-item">
-	  			<a class="nav-link" href="#tab_c" data-toggle="pill">Other</a>
-	  	</li>
-	</ul>
-
-
-	<div class="tab-content">
-	<!-- View Tab -->
-	<div class="tab-pane active" id="tab_a">
-		<br />
-		<p>Stats will go here.  Some day.</p>
-	</div>
-
-	<div class="tab-pane fade" id="tab_b">
-		<br />
-		<h4>When Do I Use This?</h4>
-		<p>Use this app whenever customer items are moved to or from the "Sold" holding area.</p>
-		<br />
-
-		<h4>How Do I Do It?</h4>
-		<p>Click the <svg class="bi bi-plus" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-  <path fill-rule="evenodd" d="M8 3.5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-.5.5H4a.5.5 0 0 1 0-1h3.5V4a.5.5 0 0 1 .5-.5z"/>
-  <path fill-rule="evenodd" d="M7.5 8a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1H8.5V12a.5.5 0 0 1-1 0V8z"/>
-</svg> button to add a transaction and its items.  The transaction should appear under the 'Active' page.</p>
-		<br />
-
-		<h4>What If I Have Issues?</h4>
-		<p>Send an email to <a href="mailto:paul@paulsolin.com">paul@paulsolin.com</a>, or file a bug at the repository over at <a href="http://github.com/psolin">github.com/psolin</a>.</p>
-	</div>
-
-	<div class="tab-pane fade" id="tab_c">
-	<br />
-	<h4>Content Header</h4>
-	</p>Optional text.</p>
-	</div>
-
-	<br />
 </div>
 {% endblock %}

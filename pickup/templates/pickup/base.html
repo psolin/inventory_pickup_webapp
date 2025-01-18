@@ -1,4 +1,4 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -6,39 +6,149 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>{% block title %}{% endblock %}</title>
 
+    <!-- Load static files -->
+    {% load static %}
+
+    {% block css %}
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-
-    <!-- Custom CSS -->
-    <link href="/static/css/custom.css" type="text/css" rel="stylesheet">
-
-    {% load i18n %}
-
+    <!-- Bootstrap Icons -->
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+      <!-- Custom CSS -->
+    <link href="{% static 'css/custom.css' %}" type="text/css" rel="stylesheet">
     <!-- pickadate.js CSS -->
-    <link href="/static/js/pickadate.js-master/lib/themes/classic.css" type="text/css" rel="stylesheet">
-    <link href="/static/js/pickadate.js-master/lib/themes/classic.date.css" type="text/css" rel="stylesheet">
-    <link href="/static/js/pickadate.js-master/lib/themes/classic.time.css" type="text/css" rel="stylesheet">
-
+    <link href="{% static 'js/pickadate.js-master/lib/themes/classic.css' %}" type="text/css" rel="stylesheet">
+    <link href="{% static 'js/pickadate.js-master/lib/themes/classic.date.css' %}" type="text/css" rel="stylesheet">
+    <link href="{% static 'js/pickadate.js-master/lib/themes/classic.time.css' %}" type="text/css" rel="stylesheet">
     <!-- Bootstrap Tagsinput -->
-    <link href="/static/css/bootstrap-tagsinput.css" type="text/css" rel="stylesheet">
-
+    <link href="{% static 'css/bootstrap-tagsinput.css' %}" type="text/css" rel="stylesheet">
     <!-- Bootgrid -->
-    <link href="/static/css/jquery.bootgrid.min.css" type="text/css" rel="stylesheet">
+    <link href="{% static 'css/jquery.bootgrid.min.css' %}" type="text/css" rel="stylesheet">
+    {% endblock %}
+      <!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 
   </head>
-  <body>
-      {% block content %}
+
+  <div class="container-fluid">
+    <!-- Collect the nav links, forms, and other content for toggling -->
+      {% block nav %}
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="container-fluid">
+              <a class="navbar-brand" href="#">Inventory Pickup</a>
+              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                  <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                      <li class="nav-item">
+                          <a class="nav-link" href="/home">Home</a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link" href="/active">Active</a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link" href="/history">History</a>
+                      </li>
+                  </ul>
+              </div>
+              <div class="row">
+                  <div class="col-md-12 text-right">
+                      <span class="user_credentials" id="{{ user.id }}">{{ user.username }} (<a href="/logout">Log out</a>)</span>
+                      <br />
+                  </div>
+              </div>
+          </div>
+      </nav>
+  </div>
+  {% endblock %}
+
+  <div class="row">
+      <!-- Header text -->
+      <div class="col-xs-6">
+          <span class="h2">{% block header %} {% endblock %}</span>
+      </div>
+      <!-- Add Transaction Modal Button -->
+      <div class="col-xs-6">
+          <span>
+              <button type="button" id="add_button" class="btn btn-default btn-md" data-toggle="modal" data-target="#AddTransactionModal">
+                  <i class="bi bi-plus-circle"></i> Add Transaction
+              </button>
+          </span>
+      </div>
+  </div>
+
+    <br />
+
+    <!-- Add Transaction Modal -->
+<!-- Add Transaction Modal -->
+<div class="modal fade" id="AddTransactionModal" tabindex="-1" aria-labelledby="AddTransactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="AddTransactionModalLabel">Add Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="add_form.reset();"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Form inputs start here -->
+                <form name="add_form" id="add_form" class="form-horizontal" method="POST" action="">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_transaction_num" class="form-label">Transaction #</label>
+                        <input id="id_transaction_num" name="transaction_num" type="text" class="form-control" pattern="\d*" placeholder="ex: 41111">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_transaction_date" class="form-label">Transaction Date</label>
+                        <input type="text" class="form-control datepicker" id="id_transaction_date" name="transaction_date">
+                        <input type="hidden" class="form-control datepicker hidden" id="id_transaction_date_hidden" name="prefix__transaction_date__suffix">
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_est_pickup_date" class="form-label">Est. Pickup Date</label>
+                        <input type="text" class="form-control datepicker" id="id_est_pickup_date" name="est_pickup_date">
+                        <input type="hidden" class="form-control datepicker hidden" id="id_est_pickup_date_hidden" name="prefix__est_pickup_date__suffix">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_customer_name" class="form-label">Customer Name</label>
+                            <input id="id_customer_name" class="form-control" type="text" title="Enter first name" placeholder="Full Name" name="customer_name">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="id_phone" class="form-label">Phone Number</label>
+                            <input id="id_phone" pattern="\d*" class="form-control" type="text" name="phone" title="Enter phone number" placeholder="Phone">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_items" class="form-label">Items</label>
+                        <input id="id_items" name="items" data-role="tagsinput" class="form-control" />
+                        <small id="item_add_comment" class="form-text text-muted">Separate with commas</small>
+                    </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="this.form.reset();">Cancel</button>
+                <button type="submit" class="btn btn-primary" value="Add" id="add_transaction_button">Add</button>
+            </div>
+            </form>
+        </div>
+    </div>
+  </div>
+</div>
+
+
+
+    <div class="container-fluid">
+      <div class="row">
+      {% block content%}
       {% endblock %}
+      </div>
+    </div>
 
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
 
-    <!-- Jquery -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-
-      <!-- Bootstrap Tagsinput -->
-    <script src="/static/js/bootstrap-tagsinput.js"></script>
-
-      <!-- Bootstrap -->
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <!-- That bootstrap jawn -->
+    <script src="/static/js/bootstrap.js"></script>
 
     <!--pickadate.js -->
     <script src="/static/js/picker.js"></script>
@@ -46,13 +156,19 @@
     <script src="/static/js/legacy.js"></script>
 
     <!-- JQuery Bootgrid -->
-    <script src="/static/js/jquery.bootgrid.min.js"></script>
-      <script src="/static/js/jquery.bootgrid.fa.min.js"></script>
+    <script src="/static/js/jquery.bootgrid.js"></script>
 
-    <!-- Bootstrap4 Tagsinput -->
-    <script src="/static/css/bootstrap-tagsinput-master/src/bootstrap-tagsinput.js"></script>
+    <!-- Bootstrap Tagsinput -->
+    <script src="/static/js/bootstrap-tagsinput.min.js"></script>
+
+    <!-- https://github.com/Tavicu/bootstrap-confirmation -->
+    <script src="/static/js/bootstrap-confirmation.js"></script>
+
+    <!-- Base's jQuery -->
+    <!-- https://github.com/Tavicu/bootstrap-confirmation -->
+    <script src="/static/js/base.js"></script>
+
 
    {% block custom_scripts %}
    {% endblock %}
-  </body>
 </html>

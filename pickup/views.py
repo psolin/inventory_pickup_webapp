@@ -11,6 +11,12 @@ import time
 import json
 import datetime
 from django.utils.timezone import localtime
+from django.shortcuts import render
+from .forms import TransactionForm, ItemForm
+from .models import Transaction, Item
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from pickup.models import Transaction
 
 
 # Functions used to get info from the DB
@@ -29,41 +35,31 @@ def transaction_info(transaction_number):
 # every view.
 
 def add_form_view(request):
+    add_form = TransactionForm()
     if request.GET.get('status') == 'add_transaction':
-        transaction_num = request.GET.get('transaction_num')
-        transaction_date = request.GET.get('transaction_date')
-        est_pickup_date = request.GET.get('est_pickup_date')
-        customer_name = request.GET.get('customer_name')
-        phone = request.GET.get('phone')
-        items = request.GET.get('items')
+        transaction_form = TransactionForm(request.GET)
+        if transaction_form.is_valid():
+            add_new_transaction = transaction_form.save()
+            items = request.GET.get('items')
 
-        add_new_transaction = \
-            Transaction(transaction_num=transaction_num,
-                        transaction_date=transaction_date,
-                        est_pickup_date=est_pickup_date,
-                        customer_name=customer_name, phone=phone)
-        add_new_transaction.save()
+            # Add all of the items to the transaction
+            if ',' in items:
+                item_lists = items.split(',')
+                for item in item_lists:
+                    add_new_item = ItemForm({'transaction_num': add_new_transaction.pk, 'desc': item})
+                    if add_new_item.is_valid():
+                        add_new_item.save()
+            else:
+                add_new_item = ItemForm({'transaction_num': add_new_transaction.pk, 'desc': items})
+                if add_new_item.is_valid():
+                    add_new_item.save()
 
-        # Add all of the items to the transaction
+            print()
+            print('%s added Transaction # %s' % (request.user, add_new_transaction.transaction_num))
+            print()
 
-        if ',' in items:
-            item_lists = items.split(',')
-            for item in item_lists:
-                pulled_transaction = \
-                    Transaction(transaction_num=transaction_num)
-                add_new_item = Item(transaction_num=pulled_transaction,
-                                    desc=item)
-                add_new_item.save()
-        else:
-            pulled_transaction = \
-                Transaction(transaction_num=transaction_num)
-            add_new_item = Item(transaction_num=pulled_transaction,
-                                desc=items)
-            add_new_item.save()
+    return render(request, 'history.html', {'add_form': add_form})
 
-        print()
-        print('%s added Transaction # %s' % (request.user, transaction_num))
-        print()
 
 
 # Delete items and send back the item count
@@ -357,41 +353,33 @@ def remove_transaction(request):
 # Historical Inventory View
 
 def history(request):
-    # 404 if not logged in
+    add_form = TransactionForm()
+    if request.method == 'POST':
+        add_form = TransactionForm(request.POST)
+        if add_form.is_valid():
+            add_new_transaction = add_form.save()
+            items = request.POST.get('items')  # Use POST data for items
 
-    if not request.user.is_authenticated:
-        return render(request, 'pickup/404.html')
+            # Add all of the items to the transaction
+            if ',' in items:
+                item_lists = items.split(',')
+                for item in item_lists:
+                    add_new_item = Item.objects.create(transaction_num=add_new_transaction, desc=item)
+                    add_new_item.save()
+            else:
+                add_new_item = Item.objects.create(transaction_num=add_new_transaction, desc=items)
+                add_new_item.save()
 
-    data = {}
+            print()
+            print('%s added Transaction # %s' % (request.user, add_new_transaction.transaction_num))
+            print()
 
-    t = Transaction.objects.all().order_by('-transaction_date',
-                                           '-transaction_num')
+    # Pass the form to the template
+    context = {
+        'add_form': add_form
+    }
+    return render(request, 'pickup/history.html', context)
 
-    i = Item.objects.all().order_by('-transaction_num')
-
-    # Sort to only show un-active items
-
-    u = []
-    for transaction in t:
-        if transaction.status() != 'Active':
-            u.append(transaction)
-
-    v = []
-    for item in i:
-        item_status = Transaction(pk=item.transaction_num)
-        if item_status != 'Active':
-            v.append(item)
-
-    data['item_list'] = v
-
-    data['transaction_list'] = u
-
-    for item in v:
-        print(item.status())
-
-    data['add_form'] = add_form
-
-    return render(request, 'pickup/history.html', data)
 
 
 # Transaction View
@@ -452,16 +440,19 @@ def transaction(request, transaction=None):
     return render(request, 'pickup/transaction.html', data)
 
 
+from django.shortcuts import render
+from .forms import TransactionForm
+from .models import Transaction, Item  # Ensure correct import
+
+
 def active(request):
     # 404 if not logged in
-
     if not request.user.is_authenticated:
         return render(request, 'pickup/404.html')
 
     data = {}
 
-    t = Transaction.objects.all().order_by('-transaction_date',
-                                           '-transaction_num')
+    t = Transaction.objects.all().order_by('-transaction_date', '-transaction_num')
     i = Item.objects.all()
 
     active_item_list = []
@@ -470,7 +461,6 @@ def active(request):
             active_item_list.append(item)
 
     # Sort to only show active transactions
-
     u = []
     for transaction in t:
         if transaction.status() == 'Active':
@@ -485,6 +475,9 @@ def active(request):
 
     data['overdue_list'] = v
     data['transaction_list'] = u
+
+    # Instantiate the add_form
+    add_form = TransactionForm()
     data['add_form'] = add_form
 
     return render(request, 'pickup/active.html', data)
@@ -494,26 +487,20 @@ def register(request):
     return render(request, 'pickup/registration/signup.html')
 
 
+@login_required
 def home(request):
-    # login screen if not logged in
+    # Gather transactions
+    transactions = Transaction.objects.all().order_by('-transaction_date', '-transaction_num')
 
-    if not request.user.is_authenticated:
-        return render(request, 'pickup/registration/login.html')
+    # Find overdue transactions
+    overdue_list = [transaction for transaction in transactions if transaction.overdue()]
 
-    data = {}
+    # Prepare context data
+    context = {
+        'overdue_transactions': len(overdue_list),
+    }
 
-    t = Transaction.objects.all().order_by('-transaction_date',
-                                           '-transaction_num')
-
-    overdue_list = []
-    for transaction in t:
-        if transaction.overdue() is True:
-            overdue_list.append(transaction)
-
-    data['overdue_transactions'] = len(overdue_list)
-    data['add_form'] = add_form
-
-    return render(request, 'pickup/home.html', data)
+    return render(request, 'pickup/home.html', context)
 
 
 def login(request):

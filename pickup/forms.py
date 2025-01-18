@@ -19,3 +19,15 @@ class SignUpForm(UserCreationForm):
             'password1',
             'password2',
         ]
+from django import forms
+from .models import Transaction, Item
+
+class TransactionForm(forms.ModelForm):
+    class Meta:
+        model = Transaction
+        fields = ['transaction_num', 'transaction_date', 'est_pickup_date', 'customer_name', 'phone']
+
+class ItemForm(forms.ModelForm):
+    class Meta:
+        model = Item
+        fields = ['transaction_num', 'desc']

@@ -1,274 +1,173 @@
 {% extends "pickup/base.html" %}
 {% load humanize %}
 
-{% block title %}Transaction # {% for transaction in transaction_list %}{{ transaction.transaction_num }}{% endfor %}{% endblock %}
+{% block title %}
+  Transaction # {% for transaction in transaction_list %}{{ transaction.transaction_num }}{% endfor %}
+{% endblock %}
 
-
-{% block header %}Transaction #
-{% for transaction in transaction_list %}
-<span name="trans_num" id="{{ transaction.transaction_num }}">{{ transaction.transaction_num }}</span>
-{% endfor %}
+{% block header %}
+  Transaction # {% for transaction in transaction_list %}
+  <span name="trans_num" id="{{ transaction.transaction_num }}">{{ transaction.transaction_num }}</span>
+  {% endfor %}
 {% endblock %}
 
 {% block content %}
 {% for transaction in transaction_list %}
 <div class="col-md-4 col-xs-18 col-centered">
-<ul class="nav nav-pills">
-  <li class="nav-item">
-  	<a class="nav-link active" href="#tab_a" data-toggle="pill">Info</a>
-  </li>
-  <li class="nav-item">
-  	<a class="nav-link" href="#tab_b" data-toggle="pill">Items (<span id="item_count">{{ transaction.item_set.count }}</span>)</a>
-  </li>
-  <li class="nav-item">
-  	<a class="nav-link" href="#tab_c" data-toggle="pill">Notes (<span id="note_count">{{ transaction.note_set.count }}</span>)</a>
-  </li>
-  <li class="nav-item">
-  	<a class="nav-link" href="#tab_d" data-toggle="pill">Edit</a>
-  </li>
-</ul>
+  <ul class="nav nav-pills">
+    <li class="nav-item">
+      <a class="nav-link active" href="#tab_a" data-toggle="pill">Info</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#tab_b" data-toggle="pill">Items (<span id="item_count">{{ transaction.item_set.count }}</span>)</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#tab_c" data-toggle="pill">Notes (<span id="note_count">{{ transaction.note_set.count }}</span>)</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#tab_d" data-toggle="pill">Edit</a>
+    </li>
+  </ul>
 
-<div class="tab-content">
-<!-- View Tab -->
-<div class="tab-pane active" id="tab_a">
-	<br />
-	<ul class="unstyled" id="info_list">
-	<li><strong>Status</strong>: <span id="info_status">{{ transaction.status }}</span></li>
-	<li><strong>Customer</strong>: {{ transaction.customer_name }}</li>
-	<li><strong>Phone</strong>: {{ transaction.pretty_phone }}
-	<li><strong>Transaction Date</strong>: {{ transaction.transaction_date|date:'l, M. d, Y' }}</li>
-	<li><strong>Estimated Pickup</strong>: {{ transaction.est_pickup_date|date:'l, M. d, Y' }}</li>
+  <div class="tab-content">
+    <!-- Info Tab -->
+    <div class="tab-pane active" id="tab_a">
+      <br />
+      <ul class="unstyled" id="info_list">
+        <li><strong>Status</strong>: <span id="info_status">{{ transaction.status }}</span></li>
+        <li><strong>Customer</strong>: {{ transaction.customer_name }}</li>
+        <li><strong>Phone</strong>: {{ transaction.pretty_phone }}</li>
+        <li><strong>Transaction Date</strong>: {{ transaction.transaction_date|date:'l, M. d, Y' }}</li>
+        <li><strong>Estimated Pickup</strong>: {{ transaction.est_pickup_date|date:'l, M. d, Y' }}</li>
 
-	{% if transaction.status == "Completed" %}
-	<span id="info_actual_pickup"><li><strong>Actual Pickup</strong>: {{ transaction.final_pickup_date }}</li></span>
-	{% elif transaction.forfeit_date != None %}
-	<li><strong>Forfeit Date</strong>: {{ transaction.forfeit_date|date:'l, M. d, Y' }}</li>
-	{% endif %}
-	<ul>
-</div>
-<div class="tab-pane fade" id="tab_b">
-	<br />
-	<ul class="list-group" id="item_list">
-	<!-- If item count >1, pickup all button! -->
+        {% if transaction.status == "Completed" %}
+        <span id="info_actual_pickup"><li><strong>Actual Pickup</strong>: {{ transaction.final_pickup_date }}</li></span>
+        {% elif transaction.forfeit_date != None %}
+        <li><strong>Forfeit Date</strong>: {{ transaction.forfeit_date|date:'l, M. d, Y' }}</li>
+        {% endif %}
+      </ul>
+    </div>
 
-	{{ transaction_list.item_set.count }}
-	{% for item in transaction.item_set.all %}
-	  <li class="list-group-item" id="{{ item.itemid }}">
-	  <p><strong><span class="item_desc" id="{{ item.itemid }}">{{ item.desc }}</span></strong></p>
-	  <p id="item_list"><small class="item_status" id="status-{{ item.itemid }}" date="{{ item.picked_up_on|date:'Y-m-d' }}">{{ item.status }}</small></p>
+    <!-- Items Tab -->
+    <div class="tab-pane fade" id="tab_b">
+      <br />
+      <ul class="list-group" id="item_list">
+        <!-- If item count >1, pickup all button! -->
+        {{ transaction_list.item_set.count }}
+        {% for item in transaction.item_set.all %}
+        <li class="list-group-item" id="{{ item.itemid }}">
+          <p><strong><span class="item_desc" id="{{ item.itemid }}">{{ item.desc }}</span></strong></p>
+          <p id="item_list"><small class="item_status" id="status-{{ item.itemid }}" date="{{ item.picked_up_on|date:'Y-m-d' }}">{{ item.status }}</small></p>
+          <p>
+            {% if transaction.forfeit_date == None %}
+            {% if item.picked_up_on != None %}
+            <button class="btn btn-default glyphicon glyphicon-check item_state" id="item_state" value="{{ item.itemid }}">
+              <i class="icon-user icon-white"></i>
+            </button>
+            {% else %}
+            <button class="btn btn-default glyphicon glyphicon-unchecked item_state" id="item_state" value="{{ item.itemid }}">
+              <i class="icon-user icon-white"></i>
+            </button>
+            {% endif %}
+            {% endif %}
 
-	  <p>
-	  	{% if transaction.forfeit_date == None %}
-	  	{% if item.picked_up_on != None %}
-		<button class="btn btn-default glyphicon glyphicon-check item_state" id="item_state" value="{{ item.itemid }}">
-		  <i class="icon-user icon-white"></i>
-		</button>
+            {% if transaction.forfeit_date == None %}
+            <!-- Edit button -->
+            <small>
+              <button type="button" class="btn btn-sm btn-default glyphicon glyphicon-pencil" data-toggle="modal" data-target="#editItem-{{ item.itemid }}" data-button="edit" id="{{ item.itemid }}"></button>
+            </small>
 
-	  	{% else %}
-		<button class="btn btn-default glyphicon glyphicon-unchecked item_state" id="item_state" value="{{ item.itemid }}">
-		  <i class="icon-user icon-white"></i>
-		</button>
-	  	{% endif %}
-	  	{% endif %}
+            <!-- Trash button -->
+            <small>
+              <button type="button" class="btn btn-sm btn-default glyphicon glyphicon-trash" name="item_button" data-placement="bottom" data-button="trash" id="{{ item.itemid }}" data-transnum="{{transaction.transaction_num}}" data-id="{{ item.itemid }}" title="Remove '{{ item.desc }}'?" data-toggle="confirmation"></button>
+            </small>
+            {% endif %}
+          </p>
+        </li>
+        {% endfor %}
+        <!-- Only add items if the transaction is not forfeited -->
+        {% if transaction.forfeit_date == None %}
+        {% if perms.pickup.add_item %}
+        <!-- Add Item Modal Button -->
+        <li class="list-group-item text-center">
+          <button type="button" class="btn btn-link btn-md" data-toggle="modal" data-target="#addItem">Add Items</button>
+        </li>
+        {% endif %}
+        {% endif %}
+      </ul>
+    </div>
 
-	  	{% if transaction.forfeit_date == None %}
-	  	<!-- Edit button -->
-	  	<small><button type="button" class="btn btn-sm btn-default glyphicon glyphicon-pencil" data-toggle="modal" data-target="#editItem-{{ item.itemid }}" data-button="edit" id="{{ item.itemid }}"></button></small>
-
-	  	<!-- Trash button -->
-		<small><button type="button" class="btn btn-sm btn-default glyphicon glyphicon-trash" name="item_button" data-placement="bottom" data-button="trash" id="{{ item.itemid }}" data-transnum="{{transaction.transaction_num}}" data-id="{{ item.itemid }}" title="Remove '{{ item.desc }}'?" data-toggle="confirmation"></button></small>
-		{% endif %}
-
-
-	  </p>
-	  </li>
-
-
-
-	 {% endfor %}
-	 <!-- Only add items if the transaction is not forfeitted -->
-	 {% for transaction in transaction_list %}
-	 {% if transaction.forfeit_date == None %}
-	{% if perms.pickup.add_item %}
-	<!-- Add Item Modal Button -->
-	<li class="list-group-item text-center">
-		<button type="button" class="btn btn-link btn-md" data-toggle="modal" data-target="#addItem">
-		  Add Items
-		</button>
-	</li>
-	{% endif %}
-	{% endif %}
-	{% endfor %}
-	</ul>
-</div>
-
-<!-- Add Item Modal -->
-<div class="modal" id="addItem" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Add Items to Transaction</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-   <div class="modal-body">
-      	<form name="add_items" id="add_items" class="form-horizontal" method="POST" action="">
-        <input id="add_item_list" name="items" data-role="tagsinput"/>
-        <p id="item_add_comment"><small>Separate with commas</small></p>
-    	</form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal" id="save_new_items">Add</button>
+    <!-- Add Item Modal -->
+    <div class="modal" id="addItem" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add Items to Transaction</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form name="add_items" id="add_items" class="form-horizontal" method="POST" action="">
+              <input id="add_item_list" name="items" data-role="tagsinput" />
+              <p id="item_add_comment"><small>Separate with commas</small></p>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" id="save_new_items">Add</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Edit Item Modal (for existing items) -->
-{% for item in transaction.item_set.all %}
-	<!-- Edit Item Modal -->
-	<div class="modal fade" id="editItem-{{ item.itemid }}" tabindex="-1" role="dialog" aria-labelledby="editItem" aria-hidden="true">
-	  <div class="modal-dialog">
-	    <div class="modal-content">
-	      <div class="modal-header">
-	        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-	        <h4 class="modal-title" id="myModalLabel">Edit Item</h4>
-	      </div>
-	      <div class="modal-body">
-	      	<label for="editItem">Item Name</label>
-	      	<input id="edit_input-{{ item.itemid }}" class="form-control input-group-lg reg_name" type="text" name="editItem" value="{{ item.desc }}">
-	      	<br />
-	      	<label for="editPickupDate">Pickup Date</label>
+    <!-- Edit Item Modals -->
+    {% for item in transaction.item_set.all %}
+    <div class="modal fade" id="editItem-{{ item.itemid }}" tabindex="-1" role="dialog" aria-labelledby="editItem" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel">Edit Item</h4>
+          </div>
+          <div class="modal-body">
+            <label for="editItem">Item Name</label>
+            <input id="edit_input-{{ item.itemid }}" class="form-control input-group-lg reg_name" type="text" name="editItem" value="{{ item.desc }}">
+            <br />
+            <label for="editPickupDate">Pickup Date</label>
             <input type="text" class="form-control datepicker" id="edit_pickupdate-{{ item.itemid }}" name="editPickupDate" initial='{{ item.picked_up_on|date:"l, M. d, Y" }}' value='{{ item.picked_up_on|date:"l, M. d, Y" }}'>
             <input type="hidden" class="form-control datepicker hidden" id="edit_pickupdate-{{ item.itemid }}" name="prefix__editPickupDate__suffix">
-	      </div>
-	      <div class="modal-footer">
-	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button><button type="button" class="btn btn-primary edit-item-button edit_item" data-dismiss="modal" id="edit_item" item-id="{{ item.itemid }}">Edit</button>
-	      </div>
-	    </div>
-	  </div>
-	</div>
-{% endfor %}
-
-
-<div class="tab-pane fade" id="tab_c">
-	<br />
-	<ul class="list-group" id="note_list">
-	{% for note in note_list %}
-	  <li class="list-group-item">
-	  <p>{{ note.content }}</p>
-	  <br />
-	  <p id="item_list"><small>- {{ note.user.first_name }}, {{ note.date|date:"l, M. d, Y, f A" }}</small></p>
-	  </li>
-
-
-
-
-	 {% endfor %}
-	<!-- Add Note Modal -->
-	{% if perms.pickup.add_note %}
-	<li class="list-group-item text-center">
-		<button type="button" class="btn btn-link btn-md" data-toggle="modal" data-target="#addNote">
-		  Add Note
-		</button>
-	</li>
-	{% endif %}
-	</ul>
-</div>
-
-<!-- Add Note Modal -->
-<div class="modal fade" id="addNote" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title" id="myModalLabel">Add Note</h4>
-      </div>
-      <div class="modal-body">
-      	<form name="add_notes" id="add_notes" class="form-horizontal" method="POST" action="">
-        <!-- Text Box Here -->
-		<textarea style="width: 100%;" placeholder="Remember, be nice!" class="form-control" id="textarea" rows="6"></textarea>
-    	</form>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal" id="save_new_note">Add</button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary edit-item-button edit_item" data-dismiss="modal" id="edit_item" item-id="{{ item.itemid }}">Edit</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-</div>
+    {% endfor %}
 
-<!-- Edit Tab -->
-<div class="tab-pane fade" id="tab_d">
-	<br />
-	<form name="edit_form" id="edit_form" class="form-horizontal">
-      <div class="input-group">
-        <span class="input-group-addon">Transaction #</span>
-        <input type="text" class="form-control" id="transNum" initial="{{ transaction.transaction_num }}" value="{{ transaction.transaction_num }}" pattern="\d*">
-      </div>
-
+    <!-- Notes Tab -->
+    <div class="tab-pane fade" id="tab_c">
       <br />
+      <ul class="list-group" id="note_list">
+        {% for note in note_list %}
+        <li class="list-group-item">
+          <p>{{ note.content }}</p>
+          <br />
+          <p id="item_list"><small>- {{ note.user.first_name }}, {{ note.date|date:"l, M. d, Y, f A" }}</small></p>
+        </li>
+        {% endfor %}
+        <!-- Add Note Modal -->
+        {% if perms.pickup.add_note %}
+        <li class="list-group-item text-center">
+          <button type="button" class="btn btn-link btn-md" data-toggle="modal" data-target="#addNote">Add Note</button>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
 
-        <div>
-		  {% if transaction.forfeit_date != None %}
-		  <a href="#" class="btn btn-info btn-block text-center" id="forfeit_button">Reinstate Transaction</a>
-		  {% else %}
-		  <a href="#" class="btn btn-warning btn-block text-center" id="forfeit_button">Forfeit Transaction</a>
-		  {% endif %}
-		  {% if perms.pickup.delete_transaction %}
-		  <a href="#" class="btn btn-danger btn-block text-center" id="remove_transaction">Remove Transaction</a>
-		  {% endif %}
-		</div>
-
-	<hr />
-      <br />
-
-     <div class="form-group">
-            <div class="col-lg-12">
-            <label for="transDate">Transaction Date</label>
-            <input type="text" class="form-control datepicker" id="editTransDate" name="editTransDate" hiddeninitial="{{ transaction.transaction_date|date:'Y-m-d' }}" initial="{{ transaction.transaction_date|date:'l, M. d, Y' }}" value="{{ transaction.transaction_date|date:'l, M. d, Y' }}">
-            <input type="hidden" name="prefix__editTransDate__suffix" id="editTransDate_hidden">
-          </div>
-     </div>
-
-      <div class="form-group">
-            <div class="col-lg-12">
-            <label for="pickupDate">Est. Pickup Date</label>
-            <input type="text" class="form-control datepicker" id="editpickupDate" name="editpickupDate" hiddeninitial="{{ transaction.est_pickup_date|date:'Y-m-d' }}" initial="{{ transaction.est_pickup_date|date:'l, M. d, Y' }}" value="{{ transaction.est_pickup_date|date:'l, M. d, Y' }}">
-            <input type="hidden" name="prefix__pickupDate__suffix" id="editpickupDate_hidden">
-          </div>
-     </div>
-
-       <div class="form-group">
-         <div class="col-sm-6">
-           <label for="editCustomer">Customer Name</label>
-           <input id="editCustomer" class="form-control input-group-lg reg_name" type="text" name="editCustomer" placeholder="Full Name" id="editCustomer" initial="{{ transaction.customer_name }}" value="{{ transaction.customer_name }}">
-         </div>
-
-         <span class="hidden-lg hidden-md hidden-sm"><br /></span>
-
-         <div class="col-sm-6">
-           <label for="editPhone">Phone Number</label>
-           <input id="editPhone" class="form-control input-group-lg reg_name" type="text" name="editPhone" placeholder="Phone" id="editPhone" pattern="\d*" initial="{{ transaction.phone }}" value="{{ transaction.phone }}">
-         </div>
-      </div>
-      <div class="modal-footer">
-	   	<button type="button" class="btn btn-default" name="edit_form_reset">Reset</button>
-      <button type="button" class="btn btn-primary" id="save_edits">Save</button>
-  </div>
-  </form>
-
-</div><!-- tab content -->
-
-
-</div><!-- end of container -->
-</div>
-{% endfor %}
-{% endblock %}
-
-{% block custom_scripts %}
-<!-- Transaction page jQuery -->
-<script src="/static/transaction.js"></script>
-{% endblock %}
+    <!-- Add Note Modal -->
+    <div class="modal fade" id="addNote" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal[_{{{CITATION{{{_1{](https://github.com/yordyjc/xrsoluciones/tree/85ff1278574a3028e30a7955f32398e1da771bb8/resources%2Fviews%2Fadmin%2Ftrabajos%2Fcrear.blade.php)[_{{{CITATION{{{_2{](https://github.com/Akishino1998/projectnyervisga/tree/34b073bab9cd4c4378c268c5a3cba9c8cec83180/resources%2Fviews%2Ftoko%2FdataServisan.blade.php)[_{{{CITATION{{{_3{](https://github.com/amaliayuna/resto2/tree/1dc9f5dc66eeb6512b8cf32016e06d78bd2e0a33/application%2Fviews%2Fv_login_user.php)[_{{{CITATION{{{_4{](https://github.com/ptadisetiawan/perpusdigital/tree/04737ba0209663195ba8501a15b51264502b6f47/article%2Fviews%2Fpencarian-lanjut%2FresultListOpac.php)[_{{{CITATION{{{_5{](https://github.com/Darkseidsam7/Fresh-Admin-PHP-Templates/tree/86637bb6d386992d8b1e4c076e6cd02a1fddd05f/typography.php)[_{{{CITATION{{{_6{](https://github.com/joshand/dashboard/tree/a7c2155d94ec4e3e8d57bc6fd5036c1b133a0b34/dashboard%2Fdevicebak.php)[_{{{CITATION{{{_7{](https://github.com/ord0077/salesapp/tree/dbe44cf9f568c4061ce78427c9f4748306ce8c8c/resources%2Fviews%2Fretails%2Fsingle.blade.php)[_{{{CITATION{{{_8{](https://github.com/Ramu93/bw/tree/4495266fff10102207e7ff38040f6cb3b27dcdc5/bonded%2Fmaster%2Fitem-master.php)[_{{{CITATION{{{_9{](https://github.com/hengkysandy/sprout/tree/2cd0c11f3c805c366d164699dd5c287fbb90e3af/resources%2Fviews%2Fpost-buy-lead%2Fprocurement-manager%2Fmeeting-schedule.blade.php)[_{{{CITATION{{{_10{](https://github.com/psolin/inventory_pickup_webapp/tree/d7ebf18d9ad187f9e6209f33d5594184e4432904/pickup%2Fstatic%2Ftransaction.js)

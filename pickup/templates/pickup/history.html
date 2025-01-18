@@ -2,147 +2,113 @@
 
 {% block title %}History{% endblock %}
 
-{% block header %}History{% endblock %}
+{% block header %}
 
-{% block nav %}
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">Inventory Pickup</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="/home">Home</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/active">Active</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" href="/history">History<span class="sr-only">(current)</span></a>
-          </li>
-        </ul>
-      </div>
-    </nav>
 {% endblock %}
 
 {% block content %}
 
 <div class="col-md-12 col-centered">
-<ul class="nav nav-pills">
-  <li class="nav-item"><a class="nav-link active" href="#tab_a" data-toggle="pill">Transactions</a>
-  </li> 
-<li class="nav-item"><a class="nav-link" href="#tab_b" data-toggle="pill">Items</a>
-  </li> 
-</ul>
+  <ul class="nav nav-pills">
+    <li class="nav-item">
+      <a class="nav-link active" href="#tab_a" data-toggle="pill">Transactions</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#tab_b" data-toggle="pill">Items</a>
+    </li>
+  </ul>
 
-<div class="tab-content">
-<!-- View Tab -->
-<div class="tab-pane active" id="tab_a">
-
-<div class="container-fluid">
-    <div class="row">
-            <div class="table-responsive">
-                <table id="grid" class="table table-condensed table-hover table-striped">
-                    <thead>
-                        <tr>
-                            <th data-column-id="transNum" data-filterable="true" data-formatter="link" data-align="center" data-header-align="center">Transaction #</th>
-                            <th data-column-id="Customer" data-filterable="true">Customer</th>
-                            <th data-column-id="transDate" data-filterable="true">Transaction Date</th>
-                            <th data-column-id="Items" data-filterable="true">Items</th>
-                            <th data-column-id="Status" data-filterable="true">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                      {% for transaction in transaction_list %}
-                        <tr>
-                            <td>{{ transaction.transaction_num }}</td>
-                            <td>{{ transaction.customer_name }}</td>
-                            <td>{{ transaction.transaction_date|date:"c" }}</td>
-                            <td>{{ transaction.item_set.count }}</td>
-                            <td>{{ transaction.status }}</td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                </table>
-            <!--/div-->
-        </div>
-    </div>
-</div>
-</div>
-
-<div class="tab-pane fade" id="tab_b">
-    <div class="container-fluid">
+  <div class="tab-content">
+    <!-- Transactions Tab -->
+    <div class="tab-pane active" id="tab_a">
+      <div class="container-fluid">
         <div class="row">
-                    <div class="table-responsive">
-            <table id="item-grid" class="table table-condensed table-hover table-striped">
-                <thead>
-                    <tr data-formatter="current_row">
-                        <th data-column-id="itemDesc" data-filterable="true" data-align="center" data-header-align="center">Item</th>
-                        <th data-column-id="itemCustomer" data-filterable="true">Customer</th>
-                        <th data-column-id="itemTransNum" data-formatter="link" data-filterable="true">Transaction #</th>
-                        <th data-column-id="itemTransDate" data-filterable="true">Transaction Date</th>
-                        <th data-column-id="itemOverdue" data-filterable="true">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                  {% for i in item_list %}
-                    <tr>
-                        <td>{{ i.desc }}</td>
-                        <td>{{ i.transaction_num.customer_name }}</td>
-                        <td>{{ i.transaction_num }}</td>
-                        <td>{{ i.transaction_num.transaction_date }}</td>
-                        <td>{{ i.status }}</td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
+          <div class="table-responsive">
+            <table id="grid" class="table table-condensed table-hover table-striped">
+              <thead>
+                <tr>
+                  <th data-column-id="transNum" data-filterable="true" data-formatter="link" data-align="center" data-header-align="center">Transaction #</th>
+                  <th data-column-id="Customer" data-filterable="true">Customer</th>
+                  <th data-column-id="transDate" data-filterable="true">Transaction Date</th>
+                  <th data-column-id="Items" data-filterable="true">Items</th>
+                  <th data-column-id="Status" data-filterable="true">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for transaction in transaction_list %}
+                <tr>
+                  <td>{{ transaction.transaction_num }}</td>
+                  <td>{{ transaction.customer_name }}</td>
+                  <td>{{ transaction.transaction_date|date:"c" }}</td>
+                  <td>{{ transaction.item_set.count }}</td>
+                  <td>{{ transaction.status }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
             </table>
-        <!--/div-->
-    </div>
+          </div>
         </div>
+      </div>
     </div>
+
+    <!-- Items Tab -->
+    <div class="tab-pane fade" id="tab_b">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="table-responsive">
+            <table id="item-grid" class="table table-condensed table-hover table-striped">
+              <thead>
+                <tr data-formatter="current_row">
+                  <th data-column-id="itemDesc" data-filterable="true" data-align="center" data-header-align="center">Item</th>
+                  <th data-column-id="itemCustomer" data-filterable="true">Customer</th>
+                  <th data-column-id="itemTransNum" data-formatter="link" data-filterable="true">Transaction #</th>
+                  <th data-column-id="itemTransDate" data-filterable="true">Transaction Date</th>
+                  <th data-column-id="itemOverdue" data-filterable="true">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for i in item_list %}
+                <tr>
+                  <td>{{ i.desc }}</td>
+                  <td>{{ i.transaction_num.customer_name }}</td>
+                  <td>{{ i.transaction_num }}</td>
+                  <td>{{ i.transaction_num.transaction_date }}</td>
+                  <td>{{ i.status }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
-</div>
-
-
-
 {% endblock %}
 
-{% block custom_scripts %} 
-
+{% block custom_scripts %}
 <script>
-$("#grid").bootgrid(
-  {
-	formatters: {
-	        "link": function(column, row)
-	        {
-	            return '<a href="/transaction/' + row[column.id] + '">' + row[column.id] + '</a>';
-	        }
-	    }
-	});
-$("#item-grid").bootgrid(
-{
+  $("#grid").bootgrid({
     formatters: {
-            "link": function(column, row)
-            {
-                return '<a href="/transaction/' + row[column.id] + '">' + row[column.id] + '</a>';
-            },
-            "itemOverdue": function(column, row)
-            {
-                if (row[column.id] == "True")
-                {
-                    return "Yes";
-                }
-                else
-                {
-                    return "No";
-                
-                }
-            }
-        }
-    });
-</script>
+      "link": function(column, row) {
+        return '<a href="/transaction/' + row[column.id] + '">' + row[column.id] + '</a>';
+      }
+    }
+  });
 
+  $("#item-grid").bootgrid({
+    formatters: {
+      "link": function(column, row) {
+        return '<a href="/transaction/' + row[column.id] + '">' + row[column.id] + '</a>';
+      },
+      "itemOverdue": function(column, row) {
+        if (row[column.id] == "True") {
+          return "Yes";
+        } else {
+          return "No";
+        }
+      }
+    }
+  });
+</script>
 {% endblock %}
