@@ -1,57 +1,166 @@
 {% extends "pickup/base.html" %}
 
-{% block title %}Home{% endblock %}
-
-{% block header %}{% endblock %}
+{% block title %}Home - Inventory Pickup{% endblock %}
 
 {% block content %}
-
-<div class="col-12 col-centered">
-  {% if overdue_transactions == 1 %}
-    <div class="alert alert-danger fade in" role="alert">
-      <span class="glyphicon glyphicon-time"></span>
-      There is one overdue transaction which needs your attention. <a href="/active" class="alert-link">View it here</a>.
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="page-header">
+      <h4 class="fw-bold"><i class="bi bi-house-door me-2"></i>Dashboard</h4>
     </div>
-  {% elif overdue_transactions > 1 %}
-    <div class="alert alert-danger fade in" role="alert">
-      <span class="glyphicon glyphicon-time"></span>
-      There are {{ overdue_transactions }} overdue transactions which need your attention. <a href="/active" class="alert-link">View them here</a>.
+
+    <ul class="nav nav-pills mb-4" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="stats-tab" data-bs-toggle="pill" data-bs-target="#stats" type="button" role="tab">
+          <i class="bi bi-bar-chart me-1"></i>Stats
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="help-tab" data-bs-toggle="pill" data-bs-target="#help" type="button" role="tab">
+          <i class="bi bi-question-circle me-1"></i>Help
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- Stats Tab -->
+      <div class="tab-pane fade show active" id="stats" role="tabpanel">
+
+        <!-- Top-level summary -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-3 col-6">
+            <div class="card stat-card">
+              <div class="card-body text-center py-4">
+                <i class="bi bi-receipt" style="font-size: 1.75rem; color: var(--ip-accent);"></i>
+                <h2 class="fw-bold mt-2 mb-0">{{ total_transactions }}</h2>
+                <p class="text-muted mb-0 small">Total Transactions</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="card stat-card">
+              <div class="card-body text-center py-4">
+                <i class="bi bi-box-seam" style="font-size: 1.75rem; color: var(--ip-accent);"></i>
+                <h2 class="fw-bold mt-2 mb-0">{{ total_items }}</h2>
+                <p class="text-muted mb-0 small">Total Items</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="card stat-card">
+              <div class="card-body text-center py-4">
+                <i class="bi bi-chat-left-text" style="font-size: 1.75rem; color: var(--ip-accent);"></i>
+                <h2 class="fw-bold mt-2 mb-0">{{ total_notes }}</h2>
+                <p class="text-muted mb-0 small">Total Notes</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6">
+            <div class="card stat-card border-start border-danger border-3">
+              <div class="card-body text-center py-4">
+                <i class="bi bi-exclamation-triangle text-danger" style="font-size: 1.75rem;"></i>
+                <h2 class="fw-bold mt-2 mb-0">{{ overdue_transactions }}</h2>
+                <p class="text-muted mb-0 small">Overdue</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transaction breakdown -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-receipt me-2"></i>Transactions by Status</h6>
+              </div>
+              <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><span class="badge text-bg-primary me-2">Active</span> Awaiting pickup</span>
+                    <span class="fw-bold">{{ active_count }}</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><span class="badge text-bg-warning me-2">In Progress</span> Partially picked up</span>
+                    <span class="fw-bold">{{ in_progress_count }}</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><span class="badge text-bg-success me-2">Completed</span> All items picked up</span>
+                    <span class="fw-bold">{{ completed_count }}</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><span class="badge text-bg-danger me-2">Forfeited</span> Items forfeited</span>
+                    <span class="fw-bold">{{ forfeited_count }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="card h-100">
+              <div class="card-header py-3">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-box me-2"></i>Items Breakdown</h6>
+              </div>
+              <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-inbox text-primary me-2"></i>In Inventory</span>
+                    <span class="fw-bold">{{ items_in_inventory }}</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-check-circle text-success me-2"></i>Picked Up</span>
+                    <span class="fw-bold">{{ items_picked_up }}</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-collection text-muted me-2"></i>Total</span>
+                    <span class="fw-bold">{{ total_items }}</span>
+                  </li>
+                </ul>
+                {% if total_items > 0 %}
+                <div class="px-3 py-3">
+                  <small class="text-muted d-block mb-2">Pickup progress</small>
+                  <div class="progress" style="height: 8px;">
+                    {% widthratio items_picked_up total_items 100 as picked_pct %}
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {% widthratio items_picked_up total_items 100 %}%"></div>
+                  </div>
+                  <small class="text-muted">{% widthratio items_picked_up total_items 100 %}% picked up</small>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Help Tab -->
+      <div class="tab-pane fade" id="help" role="tabpanel">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="fw-semibold">When Do I Use This?</h5>
+            <p class="text-muted">Use this app whenever customer items are moved to or from the "Sold" holding area.</p>
+            <h5 class="fw-semibold">How Do I Do It?</h5>
+            <p class="text-muted">
+              Tap the <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary text-white" style="width:28px;height:28px;font-size:.85rem;"><i class="bi bi-plus-lg"></i></span>
+              button at the bottom-right of the screen to add a new transaction and its items.
+              The transaction will appear under <a href="/active"><strong>Active</strong></a>.
+              Once all items are picked up, the transaction moves to <a href="/archived"><strong>Archived</strong></a>.
+            </p>
+            <h5 class="fw-semibold">Pages</h5>
+            <ul class="text-muted">
+              <li><strong>Home</strong> &mdash; Dashboard with stats and this help section.</li>
+              <li><strong>Active</strong> &mdash; Transactions still awaiting pickup.</li>
+              <li><strong>Archived</strong> &mdash; Completed and forfeited transactions.</li>
+            </ul>
+            <h5 class="fw-semibold">What If I Have Issues?</h5>
+            <p class="text-muted">
+              Send an email to <a href="mailto:paulsolin@gmail.com">paulsolin@gmail.com</a>,
+              or file a bug at the repository over at <a href="http://github.com/psolin">github.com/psolin</a>.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
-  {% endif %}
 
-<!-- Nav tabs -->
-<ul class="nav nav-tabs" id="myTab" role="tablist">
-  <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="help-tab" data-bs-toggle="tab" data-bs-target="#help" type="button" role="tab" aria-controls="help" aria-selected="true">Help</button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab" aria-controls="stats" aria-selected="false">Stats</button>
-  </li>
-</ul>
-
-<div class="tab-content">
-  <!-- Help Tab -->
-  <div class="tab-pane fade show active" id="help" role="tabpanel" aria-labelledby="help-tab">
-    <br />
-    <h4>When Do I Use This?</h4>
-    <p>Use this app whenever customer items are moved to or from the "Sold" holding area.</p>
-    <br />
-    <h4>How Do I Do It?</h4>
-    <p>
-      Click the
-      <i class="bi bi-plus-circle"></i> button to add a transaction and its items. The transaction should appear under the 'Active' page.
-    </p>
-    <br />
-    <h4>What If I Have Issues?</h4>
-    <p>Send an email to <a href="mailto:paul@paulsolin.com">paul@paulsolin.com</a>, or file a bug at the repository over at <a href="http://github.com/psolin">github.com/psolin</a>.</p>
   </div>
-
-  <!-- Stats Tab -->
-  <div class="tab-pane fade" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-    <br />
-    <p>Stats will go here. Some day.</p>
-  </div>
-</div>
-
 </div>
 {% endblock %}

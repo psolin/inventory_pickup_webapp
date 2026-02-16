@@ -1,7 +1,44 @@
-{% extends "base.html" %}
+{% extends "pickup/base.html" %}
 {% load i18n %}
 
-{% block title %}Account Profile{% endblock %}
+{% block title %}Profile - Inventory Pickup{% endblock %}
 
 {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="page-header">
+      <h4 class="fw-bold"><i class="bi bi-person-circle me-2"></i>Profile</h4>
+    </div>
+    <div class="card">
+      <div class="card-body p-4">
+        <ul class="list-unstyled mb-0">
+          <li class="d-flex py-2 border-bottom">
+            <span class="text-muted" style="min-width: 120px;">Username</span>
+            <strong>{{ user.username }}</strong>
+          </li>
+          <li class="d-flex py-2 border-bottom">
+            <span class="text-muted" style="min-width: 120px;">Email</span>
+            {{ user.email }}
+          </li>
+          <li class="d-flex py-2 border-bottom">
+            <span class="text-muted" style="min-width: 120px;">First Name</span>
+            {{ user.first_name }}
+          </li>
+          <li class="d-flex py-2">
+            <span class="text-muted" style="min-width: 120px;">Last Name</span>
+            {{ user.last_name }}
+          </li>
+        </ul>
+        <div class="d-flex gap-2 mt-4">
+          <a href="{% url 'profile_edit' %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-1"></i>Edit Profile
+          </a>
+          <a href="{% url 'password_change' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-key me-1"></i>Change Password
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

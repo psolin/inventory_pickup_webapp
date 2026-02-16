@@ -1,141 +1,169 @@
 {% extends "pickup/base.html" %}
 
-{% block title %}Active{% endblock %}
-
-{% block header %}
-
-{% endblock %}
+{% block title %}Active - Inventory Pickup{% endblock %}
 
 {% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-12">
+    <div class="page-header">
+      <h4 class="fw-bold"><i class="bi bi-clipboard-check me-2"></i>Active Inventory</h4>
+    </div>
 
-<div class="col-md-12 col-centered">
-<ul class="nav nav-pills">
-  <li class="nav-item"><a class="nav-link active" href="#tab_a" data-toggle="pill">Transactions</a>
-  </li>
-<li class="nav-item"><a class="nav-link" href="#tab_b" data-toggle="pill">Items</a>
-  </li>
-</ul>
+    <div class="card">
+      <div class="card-body">
+        <ul class="nav nav-pills mb-3">
+          <li class="nav-item">
+            <a class="nav-link active" id="tab_a_link" href="#tab_a" data-bs-toggle="pill">
+              <i class="bi bi-receipt me-1"></i>Transactions
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="tab_b_link" href="#tab_b" data-bs-toggle="pill">
+              <i class="bi bi-box me-1"></i>Items
+            </a>
+          </li>
+        </ul>
 
-<div class="tab-content">
-<!-- View Tab -->
-<div class="tab-pane active" id="tab_a">
-
-    <div class="container-fluid">
-    <div class="row">
-        <div class="table-responsive">
-            <table id="grid" class="table table-condensed table-hover table-striped">
+        <div class="tab-content">
+          <!-- Transactions tab -->
+          <div class="tab-pane fade show active" id="tab_a" role="tabpanel">
+            <div class="table-responsive">
+              <table id="trx_table" class="table table-hover align-middle">
                 <thead>
-                    <tr>
-                        <th data-column-id="transNum" data-filterable="true" data-formatter="link" data-align="center" data-header-align="center">Transaction #</th>
-                        <th data-column-id="Customer" data-filterable="true">Customer</th>
-                        <th data-column-id="transDate" data-filterable="true">Transaction Date</th>
-                        <th data-column-id="Items" data-filterable="true">Items</th>
-                        <th data-column-id="Overdue" data-formatter="overdue" data-filterable="true">Overdue</th>
-                    </tr>
+                  <tr>
+                    <th>Transaction #</th>
+                    <th>Status</th>
+                    <th>Customer</th>
+                    <th>Transaction Date</th>
+                    <th>Items</th>
+                    <th>Overdue</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {% for transaction in transaction_list %}
-                    <tr>
-                        <td>{{ transaction.transaction_num }}</td>
-                        <td>{{ transaction.customer_name }}</td>
-                        <td>{{ transaction.transaction_date|date:"c" }}</td>
-                        <td>{{ transaction.item_set.count }}</td>
-                        <td>{{ transaction.overdue }}</td>
-                    </tr>
+                  {% if transaction.status != 'Completed' %}
+                  {% if transaction.status != 'Forfeited' %}
+                  <tr>
+                    <td>
+                      <a href="#" data-bs-toggle="modal" data-bs-target="#transactionModal" class="transaction-link fw-semibold text-decoration-none" data-url="/transaction/{{ transaction.transaction_num }}/" style="color: var(--ip-accent);">
+                        #{{ transaction.transaction_num }}
+                      </a>
+                    </td>
+                    <td>
+                      {% if transaction.status == 'Active' %}
+                        <span class="badge text-bg-primary">{{ transaction.status }}</span>
+                      {% elif transaction.status == 'In Progress' %}
+                        <span class="badge text-bg-warning">{{ transaction.status }}</span>
+                      {% else %}
+                        <span class="badge text-bg-secondary">{{ transaction.status }}</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ transaction.customer_name }}</td>
+                    <td>{{ transaction.transaction_date }}</td>
+                    <td><span class="badge bg-light text-dark">{{ transaction.item_set.count }}</span></td>
+                    <td>
+                      {% if transaction.overdue %}
+                        <span class="badge text-bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Overdue</span>
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% endif %}
                   {% endfor %}
                 </tbody>
-            </table>
-        <!--/div-->
-    </div>
-    </div>
-    </div>
+              </table>
+            </div>
+          </div>
 
-</div>
-
-<div class="tab-pane fade" id="tab_b">
-    <div class="container-fluid">
-    <div class="row">
-        <div class="table-responsive">
-            <table id="item-grid" class="table table-condensed table-hover table-striped">
+          <!-- Items tab -->
+          <div class="tab-pane fade" id="tab_b" role="tabpanel">
+            <div class="table-responsive">
+              <table id="item-grid" class="table table-hover align-middle">
                 <thead>
-                    <tr data-formatter="current_row">
-                        <th data-column-id="itemDesc" data-filterable="true" data-align="center" data-header-align="center">Item</th>
-                        <th data-column-id="itemCustomer" data-filterable="true">Customer</th>
-                        <th data-column-id="itemTransNum" data-formatter="link" data-filterable="true">Transaction #</th>
-                        <th data-column-id="itemTransDate" data-filterable="true">Transaction Date</th>
-                        <th data-column-id="itemOverdue" data-formatter="itemOverdue" data-filterable="true">Overdue</th>
-                    </tr>
+                  <tr>
+                    <th data-column-id="itemDesc" data-filterable="true">Item</th>
+                    <th data-column-id="itemCustomer" data-filterable="true">Customer</th>
+                    <th data-column-id="itemTransNum" data-formatter="link" data-filterable="true">Transaction #</th>
+                    <th data-column-id="itemTransDate" data-filterable="true">Transaction Date</th>
+                    <th data-column-id="itemOverdue" data-formatter="itemOverdue" data-filterable="true">Overdue</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {% for i in item_list %}
-                    <tr>
-                        <td>{{ i.desc }}</td>
-                        <td>{{ i.transaction_num.customer_name }}</td>
-                        <td>{{ i.transaction_num }}</td>
-                        <td>{{ i.transaction_num.transaction_date }}</td>
-                        <td>{{ i.transaction_num.overdue }}</td>
-                    </tr>
+                  <tr>
+                    <td>{{ i.desc }}</td>
+                    <td>{{ i.transaction_num.customer_name }}</td>
+                    <td>
+                      <a href="#" data-bs-toggle="modal" data-bs-target="#transactionModal" class="transaction-link fw-semibold text-decoration-none" data-url="/transaction/{{ i.transaction_num }}/" style="color: var(--ip-accent);">
+                        #{{ i.transaction_num }}
+                      </a>
+                    </td>
+                    <td>{{ i.transaction_num.transaction_date }}</td>
+                    <td>
+                      {% if i.transaction_num.overdue %}
+                        <span class="badge text-bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Overdue</span>
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </td>
+                  </tr>
                   {% endfor %}
                 </tbody>
-            </table>
-        <!--/div-->
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    </div>
-    </div>
+  </div>
 </div>
 
-
+<!-- Transaction detail modal -->
+<div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="border-radius: .75rem;">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="transactionModalLabel">
+          <i class="bi bi-receipt me-2" style="color: var(--ip-accent);"></i>Transaction Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modalContent"></div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
-
-
-
 {% endblock %}
 
-{% block custom_scripts %} 
-
+{% block custom_scripts %}
 <script>
-$("#grid").bootgrid(
-{
-	formatters: {
-        "link": function(column, row)
-        {
-            return '<a href="/transaction/' + row[column.id] + '">' + row[column.id] + '</a>';
-        },
-        "overdue": function(column, row)
-            {
-                if (row[column.id] == "True")
-                {
-                    return "Yes";
-                }
-                else
-                {
-                    return "No";
-                
-                }
-            }
-	}
-});
-$("#item-grid").bootgrid(
-{
-    formatters: {
-            "link": function(column, row)
-            {
-                return '<a href="/transaction/' + row[column.id] + '">' + row[column.id] + '</a>';
-            },
-            "itemOverdue": function(column, row)
-            {
-                if (row[column.id] == "True")
-                {
-                    return "Yes";
-                }
-                else
-                {
-                    return "No";
-                
-                }
-            }
-        }
-    });
-</script>
+document.addEventListener('DOMContentLoaded', function() {
+    const trxTable = new JSTable("#trx_table");
+    const itemTable = new JSTable("#item-grid");
 
+    $(document).on('click', '.transaction-link', function(event) {
+        event.preventDefault();
+        var modalContentElement = $("#modalContent");
+        var dataUrl = $(this).data('url');
+
+        $.ajax({
+            url: dataUrl,
+            method: 'GET',
+            success: function(response) {
+                modalContentElement.html(response);
+                $('#transactionModal').modal('show');
+            },
+            error: function(error) {
+                console.error('Error loading transaction:', error);
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

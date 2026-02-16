@@ -1,0 +1,165 @@
+{% extends "pickup/base.html" %}
+
+{% block title %}Archived - Inventory Pickup{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-12">
+    <div class="page-header">
+      <h4 class="fw-bold"><i class="bi bi-archive me-2"></i>Archived Transactions</h4>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <ul class="nav nav-pills mb-3">
+          <li class="nav-item">
+            <a class="nav-link active" id="completed-tab" href="#completed" data-bs-toggle="pill">
+              <i class="bi bi-check-circle me-1"></i>Completed
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="forfeited-tab" href="#forfeited" data-bs-toggle="pill">
+              <i class="bi bi-x-circle me-1"></i>Forfeited
+            </a>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+          <!-- Completed tab -->
+          <div class="tab-pane fade show active" id="completed" role="tabpanel">
+            <div class="table-responsive">
+              <table id="completed_table" class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>Transaction #</th>
+                    <th>Customer</th>
+                    <th>Transaction Date</th>
+                    <th>Items</th>
+                    <th>Completed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for transaction in completed_list %}
+                  <tr>
+                    <td>
+                      <a href="#" data-bs-toggle="modal" data-bs-target="#transactionModal" class="transaction-link fw-semibold text-decoration-none" data-url="/transaction/{{ transaction.transaction_num }}/" style="color: var(--ip-accent);">
+                        #{{ transaction.transaction_num }}
+                      </a>
+                    </td>
+                    <td>{{ transaction.customer_name }}</td>
+                    <td>{{ transaction.transaction_date }}</td>
+                    <td><span class="badge bg-light text-dark">{{ transaction.item_set.count }}</span></td>
+                    <td>
+                      {% if transaction.final_pickup_date %}
+                        <span class="text-success"><i class="bi bi-check-lg me-1"></i>{{ transaction.final_pickup_date }}</span>
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                      <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                      <p class="mt-2 mb-0">No completed transactions yet.</p>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Forfeited tab -->
+          <div class="tab-pane fade" id="forfeited" role="tabpanel">
+            <div class="table-responsive">
+              <table id="forfeited_table" class="table table-hover align-middle">
+                <thead>
+                  <tr>
+                    <th>Transaction #</th>
+                    <th>Customer</th>
+                    <th>Transaction Date</th>
+                    <th>Items</th>
+                    <th>Forfeited On</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for transaction in forfeited_list %}
+                  <tr>
+                    <td>
+                      <a href="#" data-bs-toggle="modal" data-bs-target="#transactionModal" class="transaction-link fw-semibold text-decoration-none" data-url="/transaction/{{ transaction.transaction_num }}/" style="color: var(--ip-accent);">
+                        #{{ transaction.transaction_num }}
+                      </a>
+                    </td>
+                    <td>{{ transaction.customer_name }}</td>
+                    <td>{{ transaction.transaction_date }}</td>
+                    <td><span class="badge bg-light text-dark">{{ transaction.item_set.count }}</span></td>
+                    <td>
+                      <span class="text-danger"><i class="bi bi-x-circle me-1"></i>{{ transaction.forfeit_date }}</span>
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                      <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                      <p class="mt-2 mb-0">No forfeited transactions.</p>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transaction detail modal -->
+<div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="border-radius: .75rem;">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="transactionModalLabel">
+          <i class="bi bi-receipt me-2" style="color: var(--ip-accent);"></i>Transaction Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="modalContent"></div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block custom_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const completedTable = new JSTable("#completed_table");
+    const forfeitedTable = new JSTable("#forfeited_table");
+
+    $(document).on('click', '.transaction-link', function(event) {
+        event.preventDefault();
+        var modalContentElement = $("#modalContent");
+        var dataUrl = $(this).data('url');
+
+        $.ajax({
+            url: dataUrl,
+            method: 'GET',
+            success: function(response) {
+                modalContentElement.html(response);
+                $('#transactionModal').modal('show');
+            },
+            error: function(error) {
+                console.error('Error loading transaction:', error);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

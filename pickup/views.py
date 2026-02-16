@@ -1,230 +1,199 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-from django.http import HttpResponse
-from django.shortcuts import render
-from django.template import RequestContext
-from pickup.models import Transaction, Item, Note
-from django.db import connection
-from django.contrib.auth.models import User
-import time
 import json
-import datetime
-from django.utils.timezone import localtime
-from django.shortcuts import render
-from .forms import TransactionForm, ItemForm
-from .models import Transaction, Item
-from django.shortcuts import render
+import logging
+import time
+
+from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
-from pickup.models import Transaction
+from django.contrib.auth.models import User
+from django.contrib.auth.views import LogoutView
+from django.db import connection
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.utils.timezone import localtime
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_POST
+
+from pickup.models import Transaction, Item, Note
+from .forms import TransactionForm, ItemForm, SignUpForm, EditProfileForm
+
+logger = logging.getLogger(__name__)
 
 
-# Functions used to get info from the DB
-# Updating the transaction info pane
+@login_required
+def profile_edit(request):
+    if request.method == 'POST':
+        form = EditProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = EditProfileForm(instance=request.user)
+    return render(request, 'pickup/profile_edit.html', {'form': form})
+
+
+def signup(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            user.refresh_from_db()
+            user.save()
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=user.username, password=raw_password)
+            login(request, user)
+            return redirect('home')
+    else:
+        form = SignUpForm()
+    return render(request, 'pickup/signup.html', {'form': form})
+
 
 def transaction_info(transaction_number):
-    pulled_transaction = \
-        Transaction.objects.get(transaction_num=transaction_number)
-    return (pulled_transaction.status(),
-            pulled_transaction.final_pickup_date())
+    pulled_transaction = Transaction.objects.get(transaction_num=transaction_number)
+    return (pulled_transaction.status(), pulled_transaction.final_pickup_date())
 
 
-# jQuery functionx
+@login_required
+def check_transaction_num(request):
+    transaction_num = request.GET.get('transaction_num')
+    exists = Transaction.objects.filter(transaction_num=transaction_num).exists()
+    return JsonResponse({'exists': exists})
 
-# Used to add items to a transaction, redirects to new transaction.  In
-# every view.
 
-def add_form_view(request):
-    add_form = TransactionForm()
-    if request.GET.get('status') == 'add_transaction':
-        transaction_form = TransactionForm(request.GET)
-        if transaction_form.is_valid():
-            add_new_transaction = transaction_form.save()
-            items = request.GET.get('items')
+@csrf_protect
+@login_required
+@require_POST
+def add_transaction(request):
+    transaction_form = TransactionForm(request.POST)
+    if transaction_form.is_valid():
+        add_new_transaction = transaction_form.save()
+        items = request.POST.get('items')
 
-            # Add all of the items to the transaction
-            if ',' in items:
-                item_lists = items.split(',')
-                for item in item_lists:
-                    add_new_item = ItemForm({'transaction_num': add_new_transaction.pk, 'desc': item})
-                    if add_new_item.is_valid():
-                        add_new_item.save()
-            else:
-                add_new_item = ItemForm({'transaction_num': add_new_transaction.pk, 'desc': items})
+        if ',' in items:
+            item_lists = items.split(',')
+            for item in item_lists:
+                add_new_item = ItemForm({'transaction_num': add_new_transaction.pk, 'desc': item})
                 if add_new_item.is_valid():
                     add_new_item.save()
+        else:
+            add_new_item = ItemForm({'transaction_num': add_new_transaction.pk, 'desc': items})
+            if add_new_item.is_valid():
+                add_new_item.save()
 
-            print()
-            print('%s added Transaction # %s' % (request.user, add_new_transaction.transaction_num))
-            print()
+        logger.info('%s added Transaction # %s', request.user, add_new_transaction.transaction_num)
+        return JsonResponse({'redirect_url': reverse('active')})
+    else:
+        logger.warning('Invalid transaction form: %s', transaction_form.errors)
+        return JsonResponse({'errors': transaction_form.errors}, status=400)
 
-    return render(request, 'history.html', {'add_form': add_form})
-
-
-
-# Delete items and send back the item count
 
 def trash_item(request):
-    if request.GET.get('status') == 'trash':
-        trash_item = request.GET.get('item_id')
-        item_name = Item.objects.get(pk=trash_item)
-        print(item_name.transaction_num)
+    if request.POST.get('status') == 'trash':
+        trashed_item = request.POST.get('item_id')
+        item_name = Item.objects.get(pk=trashed_item)
 
-        Item.objects.filter(itemid=trash_item).delete()
+        Item.objects.filter(itemid=trashed_item).delete()
 
-        transaction_number = request.GET.get('transaction_number')
+        transaction_number = request.POST.get('transaction_number')
+        pulled_transaction = Transaction.objects.get(transaction_num=transaction_number)
+        item_count = Item.objects.filter(transaction_num=pulled_transaction).count()
 
-        pulled_transaction = \
-            Transaction(transaction_num=transaction_number)
-        item_count = \
-            len(Item.objects.filter(transaction_num=pulled_transaction))
-
-        # transaction_info(transaction_number) is an updated version of the
-        # status string
-
-        print()
-        print('%s trashed Item # %s (%s)' %
-              (request.user, trash_item, item_name))
-        print()
+        logger.info('%s trashed Item # %s (%s)', request.user, trashed_item, item_name)
 
         return item_count, transaction_info(transaction_number)
 
 
-# If we get a request to add items on the transaction page, add it to the DB.
-
 def add_item(request):
-    if request.GET.get('status') == 'add_item':
-
-        transaction_number = request.GET.get('transaction_number')
-        item_lists = request.GET.get('item_list')
+    if request.POST.get('status') == 'add_item':
+        transaction_number = request.POST.get('transaction_number')
+        item_lists = request.POST.get('item_list')
 
         new_item_ids = []
 
         def item_id_query():
             cursor = connection.cursor()
-            item_id_query = \
-                """SELECT itemid FROM item ORDER BY itemid DESC"""
-            cursor.execute(item_id_query)
+            cursor.execute("SELECT itemid FROM item ORDER BY itemid DESC")
             return cursor.fetchall()[0][0]
-
-        # If a list, add each item.  If not, add the one item available.
 
         if ',' in item_lists:
             item_lists = item_lists.split(',')
             for item in item_lists:
-                pulled_transaction = \
-                    Transaction(transaction_num=transaction_number)
-                add_new_item = Item(transaction_num=pulled_transaction,
-                                    desc=item)
+                pulled_transaction = Transaction.objects.get(transaction_num=transaction_number)
+                add_new_item = Item(transaction_num=pulled_transaction, desc=item)
                 add_new_item.save()
                 new_item_id = item_id_query()
                 new_item_ids.append(new_item_id)
         else:
-
-            pulled_transaction = \
-                Transaction(transaction_num=transaction_number)
-            add_new_item = Item(transaction_num=pulled_transaction,
-                                desc=item_lists)
+            pulled_transaction = Transaction.objects.get(transaction_num=transaction_number)
+            add_new_item = Item(transaction_num=pulled_transaction, desc=item_lists)
             add_new_item.save()
             new_item_id = item_id_query()
             new_item_ids.append(new_item_id)
 
-        pulled_transaction = \
-            Transaction(transaction_num=transaction_number)
-        item_count = \
-            len(Item.objects.filter(transaction_num=pulled_transaction))
+        pulled_transaction = Transaction.objects.get(transaction_num=transaction_number)
+        item_count = Item.objects.filter(transaction_num=pulled_transaction).count()
 
-        # Send back the generated itemid(s).
-        # Remember, when an item is added, it changes the transaction to active
-        # automatically.
-
-        print()
-        print('%s trashed Item # %s' % (request.user, trash_item))
-        print()
+        logger.info('%s added items to Transaction # %s', request.user, transaction_number)
 
         return new_item_ids, item_count
 
 
 def add_note(request):
-    if request.GET.get('status') == 'add_note':
-        blurb = request.GET.get('blurb')
-        user_id = request.GET.get('user_id')
-        transaction_number = request.GET.get('transaction_number')
-        now = datetime.datetime.now()
-        pulled_transaction = \
-            Transaction(transaction_num=transaction_number)
-        pulled_user = User(pk=user_id)
+    if request.POST.get('status') == 'add_note':
+        blurb = request.POST.get('blurb')
+        user_id = request.POST.get('user_id')
+        transaction_number = request.POST.get('transaction_number')
+        now = localtime()
+
+        pulled_transaction = Transaction.objects.get(transaction_num=transaction_number)
+        pulled_user = User.objects.get(pk=user_id)
         new_note = Note(transaction_num=pulled_transaction,
                         content=blurb, date=now, user=pulled_user)
         new_note.save()
 
-        # The note that we just added ...
-
-        latest_note = Note.objects.latest('noteid')
-
-        # ... the id ...
-
+        latest_note = Note.objects.latest('note_id')
         latest_note_date = localtime(latest_note.date)
 
-        # ... the user's first name who added it ...
+        note_user = pulled_user.first_name
 
-        note_user = User.objects.get(pk=user_id)
-        note_user = note_user.first_name
+        logger.info('%s added a Note to Transaction # %s', request.user, transaction_number)
 
-        # ... and the new note count for the transaction.
+        note_count = Note.objects.filter(transaction_num=pulled_transaction).count()
 
-        print()
-        print('%s added a Note' % request.user)
-        print()
-
-        note_count = \
-            len(Note.objects.filter(transaction_num=pulled_transaction))
-
-        return (latest_note_date.strftime('%A, %b. %d, %Y, %I:%m %p'),
+        return (latest_note_date.strftime('%A, %b. %d, %Y, %I:%M %p'),
                 note_count, note_user)
 
 
-# Edit individual items
-
 def edit_item(request):
-    if request.GET.get('status') == 'edit_item':
-        item_id = request.GET.get('current_item_id')
-        new_desc = request.GET.get('new_desc')
+    if request.POST.get('status') == 'edit_item':
+        item_id = request.POST.get('current_item_id')
+        new_desc = request.POST.get('new_desc')
         Item.objects.filter(itemid=item_id).update(desc=new_desc)
 
-        print()
-        print('%s edited Item # %s' % (request.user, item_id))
-        print()
+        logger.info('%s edited Item # %s', request.user, item_id)
 
 
 def edit_item_date(request):
-    if request.GET.get('status') == 'edit_item_date':
-        item_id = request.GET.get('current_item_id')
-        new_date = request.GET.get('new_date')
-        transaction_number = request.GET.get('transaction_number')
+    if request.POST.get('status') == 'edit_item_date':
+        item_id = request.POST.get('current_item_id')
+        new_date = request.POST.get('new_date')
+        transaction_number = request.POST.get('transaction_number')
         Item.objects.filter(itemid=item_id).update(picked_up_on=new_date)
         new_item_date = Item.objects.get(itemid=item_id)
 
-        print()
-        print('%s changed Item #%s date to %s' % (
-            request.user, item_id, new_date))
-        print()
+        logger.info('%s changed Item #%s date to %s', request.user, item_id, new_date)
 
-        return (new_item_date.status(),
-                transaction_info(transaction_number))
+        return (new_item_date.status(), transaction_info(transaction_number))
 
-
-# Editing a transaction's information
 
 def edit_transaction(request):
-    if request.GET.get('status') == 'edit_transaction':
-        transaction_number = request.GET.get('transaction_number')
-        edited_transaction_number = \
-            request.GET.get('edited_transaction_number')
-        transaction_date = request.GET.get('transaction_date')
-        est_pickup_date = request.GET.get('est_pickup_date')
-        customer_name = request.GET.get('customer_name')
-        phone_number = request.GET.get('phone_number')
+    if request.POST.get('status') == 'edit_transaction':
+        transaction_number = request.POST.get('transaction_number')
+        edited_transaction_number = request.POST.get('edited_transaction_number')
+        transaction_date = request.POST.get('transaction_date')
+        est_pickup_date = request.POST.get('est_pickup_date')
+        customer_name = request.POST.get('customer_name')
+        phone_number = request.POST.get('phone_number')
 
         returned_data = {
             'transaction_date': transaction_date,
@@ -233,13 +202,10 @@ def edit_transaction(request):
             'phone': phone_number,
         }
 
-        # If the transaction number needs to be changed, do this first
         if transaction_number != edited_transaction_number:
-
             Transaction.objects.filter(transaction_num=transaction_number).update(
                 transaction_num=edited_transaction_number)
-            pulled_transaction = Transaction.objects.get(
-                pk=edited_transaction_number)
+            pulled_transaction = Transaction.objects.get(pk=edited_transaction_number)
             Item.objects.filter(transaction_num_id=transaction_number).update(
                 transaction_num_id=pulled_transaction)
             Note.objects.filter(transaction_num_id=transaction_number).update(
@@ -250,77 +216,40 @@ def edit_transaction(request):
 
         for entry in returned_data:
             if returned_data[entry] != '':
-                print(returned_data[entry])
-                if entry == 'transaction_date':
-
-                    Transaction.objects.filter(transaction_num=new_transaction_num).update(
-                        transaction_date=returned_data[entry])
-                elif entry == 'est_pickup_date':
-
-                    Transaction.objects.filter(transaction_num=new_transaction_num).update(
-                        est_pickup_date=returned_data[entry])
-                elif entry == 'customer_name':
-
-                    Transaction.objects.filter(transaction_num=new_transaction_num).update(
-                        customer_name=returned_data[entry])
-                elif entry == 'phone':
-
-                    Transaction.objects.filter(transaction_num=new_transaction_num).update(
-                        phone=returned_data[entry])
+                Transaction.objects.filter(transaction_num=new_transaction_num).update(
+                    **{entry: returned_data[entry]})
 
         return new_transaction_num
 
 
-# Forfeit or reinstate a transaction
-
 def forfeit(request):
-    if request.GET.get('status') == 'forfeit':
-        transaction_number = request.GET.get('transaction_number')
-        pulled_transaction = \
-            Transaction.objects.get(transaction_num=transaction_number)
-
-        # If the transaction is not forfeited, add today's date.  Otherwise,
-        # clear it.
+    if request.POST.get('status') == 'forfeit':
+        transaction_number = request.POST.get('transaction_number')
+        pulled_transaction = Transaction.objects.get(transaction_num=transaction_number)
 
         if pulled_transaction.forfeit_date is None:
             today = time.strftime('%Y-%m-%d')
-
             Transaction.objects.filter(
                 transaction_num=transaction_number).update(forfeit_date=today)
         else:
-
             Transaction.objects.filter(
                 transaction_num=transaction_number).update(forfeit_date=None)
 
-        print()
-        print('%s forfeited transaction # %s' %
-              (request.user, transaction_number))
-        print()
+        logger.info('%s forfeited transaction # %s', request.user, transaction_number)
 
 
 def check_item(request):
-    if request.GET.get('status') == 'check_item':
-        item_to_check = request.GET.get('current_id')
-
-        transaction_number = request.GET.get('transaction_number')
+    if request.POST.get('status') == 'check_item':
+        item_to_check = request.POST.get('current_id')
+        transaction_number = request.POST.get('transaction_number')
 
         pulled_item = Item.objects.get(itemid=item_to_check)
 
         if pulled_item.picked_up_on is None:
-
-            # If the item is not picked up (there is no date), update the date
-
             pickup_day = time.strftime('%Y-%m-%d')
-            Item.objects.filter(itemid=item_to_check).update(
-                picked_up_on=pickup_day)
+            Item.objects.filter(itemid=item_to_check).update(picked_up_on=pickup_day)
         else:
-
-            # Remove the date if there is actually a date there
-            Item.objects.filter(pk=item_to_check).update(picked_up_on=None)
-
-        current_active = 0
-
-        # Pull the item again in its new state
+            Item.objects.filter(itemid=item_to_check).update(picked_up_on=None)
 
         pulled_item = Item.objects.get(itemid=item_to_check)
         item_status = pulled_item.status()
@@ -331,186 +260,150 @@ def check_item(request):
         else:
             item_date = ''
 
-        return (item_status, current_active,
-                transaction_info(transaction_number), item_date)
+        return (item_status, 0, transaction_info(transaction_number), item_date)
 
 
 def remove_transaction(request):
-    if request.GET.get('status') == 'remove_transaction':
-        transaction_number = request.GET.get('transaction_number')
-        pulled_transaction = \
-            Transaction.objects.get(transaction_num=transaction_number)
+    if request.POST.get('status') == 'remove_transaction':
+        transaction_number = request.POST.get('transaction_number')
+        pulled_transaction = Transaction.objects.get(transaction_num=transaction_number)
         pulled_transaction.delete()
 
-        print()
-        print('%s removed transaction # %s' %
-              (request.user, transaction_number))
-        print()
+        logger.info('%s removed transaction # %s', request.user, transaction_number)
 
 
 # Views
 
-# Historical Inventory View
-
-def history(request):
+@login_required
+def transaction(request, trx=None):
     add_form = TransactionForm()
+
     if request.method == 'POST':
-        add_form = TransactionForm(request.POST)
-        if add_form.is_valid():
-            add_new_transaction = add_form.save()
-            items = request.POST.get('items')  # Use POST data for items
+        edited_transaction = edit_transaction(request)
+        if edited_transaction is not None:
+            return HttpResponse(json.dumps(edited_transaction), content_type='application/json')
 
-            # Add all of the items to the transaction
-            if ',' in items:
-                item_lists = items.split(',')
-                for item in item_lists:
-                    add_new_item = Item.objects.create(transaction_num=add_new_transaction, desc=item)
-                    add_new_item.save()
-            else:
-                add_new_item = Item.objects.create(transaction_num=add_new_transaction, desc=items)
-                add_new_item.save()
+        edited_date = edit_item_date(request)
+        if edited_date is not None:
+            return HttpResponse(json.dumps(edited_date), content_type='application/json')
 
-            print()
-            print('%s added Transaction # %s' % (request.user, add_new_transaction.transaction_num))
-            print()
+        item_count_response = trash_item(request)
+        if item_count_response is not None:
+            return HttpResponse(json.dumps(item_count_response), content_type='application/json')
 
-    # Pass the form to the template
-    context = {
-        'add_form': add_form
-    }
-    return render(request, 'pickup/history.html', context)
+        note_data = add_note(request)
+        if note_data is not None:
+            return HttpResponse(json.dumps(note_data), content_type='application/json')
 
+        pk = add_item(request)
+        if pk is not None:
+            return HttpResponse(json.dumps(pk), content_type='application/json')
 
+        item_info = check_item(request)
+        if item_info is not None:
+            return HttpResponse(json.dumps(item_info), content_type='application/json')
 
-# Transaction View
+        edit_item(request)
+        forfeit(request)
+        remove_transaction(request)
 
-def transaction(request, transaction=None):
-    # 404 if not logged in
-
-    if not request.user.is_authenticated:
-        return render(request, 'pickup/404.html')
+        return JsonResponse({'status': 'ok'})
 
     data = {}
+    try:
+        t = get_object_or_404(Transaction, pk=trx)
+        data['transaction_list'] = [t]
+    except Transaction.DoesNotExist:
+        return render(request, 'pickup/404.html', {'error_message': 'Transaction not found'}, status=404)
 
-    edited_transaction = edit_transaction(request)
-    if edited_transaction is not None:
-        return HttpResponse(json.dumps(edited_transaction),
-                            content_type='application/json')
-
-    edited_date = edit_item_date(request)
-    if edited_date is not None:
-        return HttpResponse(json.dumps(edited_date),
-                            content_type='application/json')
-
-    item_count_response = trash_item(request)
-    if item_count_response is not None:
-        return HttpResponse(json.dumps(item_count_response),
-                            content_type='application/json')
-
-    note_data = add_note(request)
-    if note_data is not None:
-        return HttpResponse(json.dumps(note_data),
-                            content_type='application/json')
-
-    t = Transaction.objects.filter(pk=transaction)
-    data['transaction_list'] = t
-
-    n = \
-        Note.objects.filter(transaction_num=transaction).order_by('-date'
-                                                                  )
+    n = Note.objects.filter(transaction_num=trx).order_by('-date')
     data['note_list'] = n
     data['add_form'] = add_form
-
-    pk = add_item(request)
-    if pk is not None:
-        return HttpResponse(json.dumps(pk),
-                            content_type='application/json')
-
-    item_info = check_item(request)
-    if item_info is not None:
-        return HttpResponse(json.dumps(item_info),
-                            content_type='application/json')
-
-    edit_item(request)
-
-    forfeit(request)
-
-    remove_transaction(request)
 
     return render(request, 'pickup/transaction.html', data)
 
 
-from django.shortcuts import render
-from .forms import TransactionForm
-from .models import Transaction, Item  # Ensure correct import
-
-
+@login_required
 def active(request):
-    # 404 if not logged in
-    if not request.user.is_authenticated:
-        return render(request, 'pickup/404.html')
+    active_transactions = Transaction.objects.filter(
+        forfeit_date__isnull=True).order_by('-transaction_date', '-transaction_num')
+    active_items = Item.objects.filter(picked_up_on__isnull=True)
 
-    data = {}
+    context = {
+        'transaction_list': active_transactions,
+        'item_list': active_items,
+    }
 
-    t = Transaction.objects.all().order_by('-transaction_date', '-transaction_num')
-    i = Item.objects.all()
-
-    active_item_list = []
-    for item in i:
-        if item.status() == 'In Inventory':
-            active_item_list.append(item)
-
-    # Sort to only show active transactions
-    u = []
-    for transaction in t:
-        if transaction.status() == 'Active':
-            u.append(transaction)
-
-    data['item_list'] = active_item_list
-
-    v = []
-    for transaction in t:
-        if transaction.overdue() is True:
-            v.append(transaction)
-
-    data['overdue_list'] = v
-    data['transaction_list'] = u
-
-    # Instantiate the add_form
-    add_form = TransactionForm()
-    data['add_form'] = add_form
-
-    return render(request, 'pickup/active.html', data)
+    return render(request, 'pickup/active.html', context)
 
 
-def register(request):
-    return render(request, 'pickup/registration/signup.html')
+@login_required
+def archived(request):
+    archived_transactions = Transaction.objects.filter(
+        forfeit_date__isnull=False
+    ).order_by('-forfeit_date', '-transaction_num')
+
+    # Also include completed transactions (all items picked up, not forfeited)
+    completed_transactions = []
+    active_transactions = Transaction.objects.filter(forfeit_date__isnull=True)
+    for trx in active_transactions:
+        if trx.status() == 'Completed':
+            completed_transactions.append(trx)
+
+    context = {
+        'forfeited_list': archived_transactions,
+        'completed_list': completed_transactions,
+    }
+    return render(request, 'pickup/archived.html', context)
 
 
 @login_required
 def home(request):
-    # Gather transactions
     transactions = Transaction.objects.all().order_by('-transaction_date', '-transaction_num')
+    overdue_list = [trx for trx in transactions if trx.overdue()]
 
-    # Find overdue transactions
-    overdue_list = [transaction for transaction in transactions if transaction.overdue()]
+    total_transactions = transactions.count()
+    active_transactions = Transaction.objects.filter(forfeit_date__isnull=True)
+    forfeited_count = Transaction.objects.filter(forfeit_date__isnull=False).count()
 
-    # Prepare context data
+    # Compute statuses by iterating (status is a model method, not a DB field)
+    status_counts = {'Active': 0, 'In Progress': 0, 'Completed': 0, 'No Items': 0}
+    for trx in active_transactions:
+        s = trx.status()
+        if s in status_counts:
+            status_counts[s] += 1
+
+    total_items = Item.objects.count()
+    items_in_inventory = Item.objects.filter(picked_up_on__isnull=True).count()
+    items_picked_up = Item.objects.filter(picked_up_on__isnull=False).count()
+    total_notes = Note.objects.count()
+
     context = {
         'overdue_transactions': len(overdue_list),
+        'total_transactions': total_transactions,
+        'active_count': status_counts['Active'],
+        'in_progress_count': status_counts['In Progress'],
+        'completed_count': status_counts['Completed'],
+        'forfeited_count': forfeited_count,
+        'total_items': total_items,
+        'items_in_inventory': items_in_inventory,
+        'items_picked_up': items_picked_up,
+        'total_notes': total_notes,
     }
 
     return render(request, 'pickup/home.html', context)
 
 
-def login(request):
-    return render(request, 'pickup/registration/login.html')
+@login_required
+def profile(request):
+    return render(request, 'pickup/profile.html')
 
 
-# 404 Template
+class CustomLogoutView(LogoutView):
+    next_page = 'login'
 
-def handler404(request):
-    response = render('pickup/404.html', {},
-                      context_instance=RequestContext(request))
+
+def handler404(request, exception=None):
+    response = render(request, 'pickup/404.html', {})
     response.status_code = 404
     return response

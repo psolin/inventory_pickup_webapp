@@ -1,173 +1,209 @@
-{% extends "pickup/base.html" %}
-{% load humanize %}
-
-{% block title %}
-  Transaction # {% for transaction in transaction_list %}{{ transaction.transaction_num }}{% endfor %}
-{% endblock %}
-
-{% block header %}
-  Transaction # {% for transaction in transaction_list %}
-  <span name="trans_num" id="{{ transaction.transaction_num }}">{{ transaction.transaction_num }}</span>
-  {% endfor %}
-{% endblock %}
-
-{% block content %}
 {% for transaction in transaction_list %}
-<div class="col-md-4 col-xs-18 col-centered">
-  <ul class="nav nav-pills">
-    <li class="nav-item">
-      <a class="nav-link active" href="#tab_a" data-toggle="pill">Info</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="#tab_b" data-toggle="pill">Items (<span id="item_count">{{ transaction.item_set.count }}</span>)</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="#tab_c" data-toggle="pill">Notes (<span id="note_count">{{ transaction.note_set.count }}</span>)</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="#tab_d" data-toggle="pill">Edit</a>
-    </li>
-  </ul>
-
-  <div class="tab-content">
-    <!-- Info Tab -->
-    <div class="tab-pane active" id="tab_a">
-      <br />
-      <ul class="unstyled" id="info_list">
-        <li><strong>Status</strong>: <span id="info_status">{{ transaction.status }}</span></li>
-        <li><strong>Customer</strong>: {{ transaction.customer_name }}</li>
-        <li><strong>Phone</strong>: {{ transaction.pretty_phone }}</li>
-        <li><strong>Transaction Date</strong>: {{ transaction.transaction_date|date:'l, M. d, Y' }}</li>
-        <li><strong>Estimated Pickup</strong>: {{ transaction.est_pickup_date|date:'l, M. d, Y' }}</li>
-
-        {% if transaction.status == "Completed" %}
-        <span id="info_actual_pickup"><li><strong>Actual Pickup</strong>: {{ transaction.final_pickup_date }}</li></span>
-        {% elif transaction.forfeit_date != None %}
-        <li><strong>Forfeit Date</strong>: {{ transaction.forfeit_date|date:'l, M. d, Y' }}</li>
-        {% endif %}
-      </ul>
-    </div>
-
-    <!-- Items Tab -->
-    <div class="tab-pane fade" id="tab_b">
-      <br />
-      <ul class="list-group" id="item_list">
-        <!-- If item count >1, pickup all button! -->
-        {{ transaction_list.item_set.count }}
-        {% for item in transaction.item_set.all %}
-        <li class="list-group-item" id="{{ item.itemid }}">
-          <p><strong><span class="item_desc" id="{{ item.itemid }}">{{ item.desc }}</span></strong></p>
-          <p id="item_list"><small class="item_status" id="status-{{ item.itemid }}" date="{{ item.picked_up_on|date:'Y-m-d' }}">{{ item.status }}</small></p>
-          <p>
-            {% if transaction.forfeit_date == None %}
-            {% if item.picked_up_on != None %}
-            <button class="btn btn-default glyphicon glyphicon-check item_state" id="item_state" value="{{ item.itemid }}">
-              <i class="icon-user icon-white"></i>
-            </button>
-            {% else %}
-            <button class="btn btn-default glyphicon glyphicon-unchecked item_state" id="item_state" value="{{ item.itemid }}">
-              <i class="icon-user icon-white"></i>
-            </button>
-            {% endif %}
-            {% endif %}
-
-            {% if transaction.forfeit_date == None %}
-            <!-- Edit button -->
-            <small>
-              <button type="button" class="btn btn-sm btn-default glyphicon glyphicon-pencil" data-toggle="modal" data-target="#editItem-{{ item.itemid }}" data-button="edit" id="{{ item.itemid }}"></button>
-            </small>
-
-            <!-- Trash button -->
-            <small>
-              <button type="button" class="btn btn-sm btn-default glyphicon glyphicon-trash" name="item_button" data-placement="bottom" data-button="trash" id="{{ item.itemid }}" data-transnum="{{transaction.transaction_num}}" data-id="{{ item.itemid }}" title="Remove '{{ item.desc }}'?" data-toggle="confirmation"></button>
-            </small>
-            {% endif %}
-          </p>
+<div id="transaction_view" class="col-12">
+    <ul class="nav nav-pills mb-3" id="view_trx_tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" href="#info_tab" data-bs-toggle="pill">
+                <i class="bi bi-info-circle me-1"></i>Info
+            </a>
         </li>
-        {% endfor %}
-        <!-- Only add items if the transaction is not forfeited -->
-        {% if transaction.forfeit_date == None %}
-        {% if perms.pickup.add_item %}
-        <!-- Add Item Modal Button -->
-        <li class="list-group-item text-center">
-          <button type="button" class="btn btn-link btn-md" data-toggle="modal" data-target="#addItem">Add Items</button>
+        <li class="nav-item">
+            <a class="nav-link" href="#item_tab" data-bs-toggle="pill">
+                <i class="bi bi-box me-1"></i>Items (<span id="item_count">{{ transaction.item_set.count }}</span>)
+            </a>
         </li>
-        {% endif %}
-        {% endif %}
-      </ul>
-    </div>
+        <li class="nav-item">
+            <a class="nav-link" href="#note_tab" data-bs-toggle="pill">
+                <i class="bi bi-chat-left-text me-1"></i>Notes (<span id="note_count">{{ transaction.note_set.count }}</span>)
+            </a>
+        </li>
+    </ul>
 
-    <!-- Add Item Modal -->
-    <div class="modal" id="addItem" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Add Items to Transaction</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form name="add_items" id="add_items" class="form-horizontal" method="POST" action="">
-              <input id="add_item_list" name="items" data-role="tagsinput" />
-              <p id="item_add_comment"><small>Separate with commas</small></p>
+    <div class="tab-content">
+        <!-- Info tab -->
+        <div class="tab-pane fade show active" id="info_tab">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0" id="info_list">
+                        <li class="d-flex py-2 border-bottom">
+                            <span class="text-muted" style="min-width: 160px;">Transaction #</span>
+                            <strong>{{ transaction.transaction_num }}</strong>
+                        </li>
+                        <li class="d-flex py-2 border-bottom">
+                            <span class="text-muted" style="min-width: 160px;">Status</span>
+                            <span id="info_status">
+                                {% if transaction.status == 'Active' %}
+                                    <span class="badge text-bg-primary">{{ transaction.status }}</span>
+                                {% elif transaction.status == 'In Progress' %}
+                                    <span class="badge text-bg-warning">{{ transaction.status }}</span>
+                                {% elif transaction.status == 'Completed' %}
+                                    <span class="badge text-bg-success">{{ transaction.status }}</span>
+                                {% elif transaction.status == 'Forfeited' %}
+                                    <span class="badge text-bg-danger">{{ transaction.status }}</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">{{ transaction.status }}</span>
+                                {% endif %}
+                            </span>
+                        </li>
+                        <li class="d-flex py-2 border-bottom">
+                            <span class="text-muted" style="min-width: 160px;">Customer</span>
+                            <strong>{{ transaction.customer_name }}</strong>
+                        </li>
+                        <li class="d-flex py-2 border-bottom">
+                            <span class="text-muted" style="min-width: 160px;">Phone</span>
+                            {{ transaction.phone }}
+                        </li>
+                        <li class="d-flex py-2 border-bottom">
+                            <span class="text-muted" style="min-width: 160px;">Transaction Date</span>
+                            {{ transaction.transaction_date|date:'l, M. d, Y' }}
+                        </li>
+                        <li class="d-flex py-2 border-bottom">
+                            <span class="text-muted" style="min-width: 160px;">Estimated Pickup</span>
+                            {{ transaction.est_pickup_date|date:'l, M. d, Y' }}
+                        </li>
+                        {% if transaction.status == "Completed" %}
+                        <li class="d-flex py-2 border-bottom" id="info_actual_pickup">
+                            <span class="text-muted" style="min-width: 160px;">Actual Pickup</span>
+                            {{ transaction.final_pickup_date }}
+                        </li>
+                        {% elif transaction.forfeit_date != None %}
+                        <li class="d-flex py-2 border-bottom">
+                            <span class="text-muted" style="min-width: 160px;">Forfeit Date</span>
+                            {{ transaction.forfeit_date|date:'l, M. d, Y' }}
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items tab -->
+        <div class="tab-pane fade" id="item_tab">
+            <ul class="list-group">
+                {% for item in transaction.item_set.all %}
+                <li class="list-group-item d-flex justify-content-between align-items-center" id="{{ item.itemid }}">
+                    <div>
+                        <strong class="item_desc" id="{{ item.itemid }}">{{ item.desc }}</strong>
+                        <br>
+                        <small class="item_status text-muted" id="status-{{ item.itemid }}">{{ item.status }}</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if item.status == "In Inventory" %}
+                            <span class="badge text-bg-primary">{{ item.status }}</span>
+                        {% elif item.status == "Forfeited" %}
+                            <span class="badge text-bg-danger">{{ item.status }}</span>
+                        {% else %}
+                            <span class="badge text-bg-success">{{ item.status }}</span>
+                        {% endif %}
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-danger" data-action="trash" data-item-id="{{ item.itemid }}" data-item-name="{{ item.desc }}">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editItem-{{ item.itemid }}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% if transaction.forfeit_date == None %}
+                {% if perms.pickup.add_item %}
+                <div class="mt-3">
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addItem">
+                        <i class="bi bi-plus-circle me-1"></i>Add Items
+                    </button>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <!-- Notes tab -->
+        <div class="tab-pane fade" id="note_tab">
+            <ul class="list-group mb-3" id="note_list">
+                {% for note in note_list %}
+                <li class="list-group-item">
+                    <div class="mb-1">{{ note.content }}</div>
+                    <small class="text-muted">
+                        <i class="bi bi-person me-1"></i>{{ note.user }} &middot; {{ note.date }}
+                    </small>
+                </li>
+                {% endfor %}
+            </ul>
+            <form id="add_note_form" method="post">
+                {% csrf_token %}
+                <div class="form-floating mb-2">
+                    <textarea class="form-control" placeholder="Leave a comment here" id="note_blurb" name="blurb" style="height: 80px"></textarea>
+                    <label for="note_blurb">Add a Note</label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-send me-1"></i>Submit
+                </button>
+                <input type="hidden" name="status" value="add_note">
+                <input type="hidden" name="user_id" value="{{ request.user.id }}">
+                <input type="hidden" name="transaction_number" value="{{ transaction.transaction_num }}">
             </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-dismiss="modal" id="save_new_items">Add</button>
-          </div>
         </div>
-      </div>
     </div>
+</div>
 
-    <!-- Edit Item Modals -->
-    {% for item in transaction.item_set.all %}
-    <div class="modal fade" id="editItem-{{ item.itemid }}" tabindex="-1" role="dialog" aria-labelledby="editItem" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-            <h4 class="modal-title" id="myModalLabel">Edit Item</h4>
-          </div>
-          <div class="modal-body">
-            <label for="editItem">Item Name</label>
-            <input id="edit_input-{{ item.itemid }}" class="form-control input-group-lg reg_name" type="text" name="editItem" value="{{ item.desc }}">
-            <br />
-            <label for="editPickupDate">Pickup Date</label>
-            <input type="text" class="form-control datepicker" id="edit_pickupdate-{{ item.itemid }}" name="editPickupDate" initial='{{ item.picked_up_on|date:"l, M. d, Y" }}' value='{{ item.picked_up_on|date:"l, M. d, Y" }}'>
-            <input type="hidden" class="form-control datepicker hidden" id="edit_pickupdate-{{ item.itemid }}" name="prefix__editPickupDate__suffix">
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary edit-item-button edit_item" data-dismiss="modal" id="edit_item" item-id="{{ item.itemid }}">Edit</button>
-          </div>
+<!-- Add Item Modal -->
+<div class="modal fade" id="addItem" tabindex="-1" aria-labelledby="addItemLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: .75rem;">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="addItemLabel">
+                    <i class="bi bi-plus-circle me-2" style="color: var(--ip-accent);"></i>Add Items
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form name="add_items" id="add_items" class="needs-validation" method="POST" action="">
+                    {% csrf_token %}
+                    <input id="add_item_list" name="items" data-role="tagsinput" />
+                    <small class="form-text text-muted">Separate with commas</small>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="save_new_items">
+                    <i class="bi bi-check-lg me-1"></i>Add
+                </button>
+            </div>
         </div>
-      </div>
     </div>
-    {% endfor %}
+</div>
 
-    <!-- Notes Tab -->
-    <div class="tab-pane fade" id="tab_c">
-      <br />
-      <ul class="list-group" id="note_list">
-        {% for note in note_list %}
-        <li class="list-group-item">
-          <p>{{ note.content }}</p>
-          <br />
-          <p id="item_list"><small>- {{ note.user.first_name }}, {{ note.date|date:"l, M. d, Y, f A" }}</small></p>
-        </li>
-        {% endfor %}
-        <!-- Add Note Modal -->
-        {% if perms.pickup.add_note %}
-        <li class="list-group-item text-center">
-          <button type="button" class="btn btn-link btn-md" data-toggle="modal" data-target="#addNote">Add Note</button>
-        </li>
-        {% endif %}
-      </ul>
+<!-- Edit Item Modals -->
+{% for item in transaction.item_set.all %}
+<div class="modal fade" id="editItem-{{ item.itemid }}" tabindex="-1" aria-labelledby="editItemLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: .75rem;">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="editItemLabel">
+                    <i class="bi bi-pencil me-2" style="color: var(--ip-accent);"></i>Edit Item
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="editItem" class="form-label fw-semibold">Item Name</label>
+                    <input id="edit_input-{{ item.itemid }}" class="form-control" type="text" name="editItem" value="{{ item.desc }}">
+                </div>
+                <div class="mb-3">
+                    <label for="editPickupDate" class="form-label fw-semibold">Pickup Date</label>
+                    <input type="text" class="form-control datepicker" id="edit_pickupdate-{{ item.itemid }}" name="editPickupDate" initial='{{ item.picked_up_on|date:"l, M. d, Y" }}' value='{{ item.picked_up_on|date:"l, M. d, Y" }}'>
+                    <input type="hidden" class="form-control datepicker hidden" id="edit_pickupdate-{{ item.itemid }}" name="prefix__editPickupDate__suffix">
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary edit-item-button" data-bs-dismiss="modal" item-id="{{ item.itemid }}">
+                    <i class="bi bi-check-lg me-1"></i>Save
+                </button>
+            </div>
+        </div>
     </div>
+</div>
+{% endfor %}
 
-    <!-- Add Note Modal -->
-    <div class="modal fade" id="addNote" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal[_{{{CITATION{{{_1{](https://github.com/yordyjc/xrsoluciones/tree/85ff1278574a3028e30a7955f32398e1da771bb8/resources%2Fviews%2Fadmin%2Ftrabajos%2Fcrear.blade.php)[_{{{CITATION{{{_2{](https://github.com/Akishino1998/projectnyervisga/tree/34b073bab9cd4c4378c268c5a3cba9c8cec83180/resources%2Fviews%2Ftoko%2FdataServisan.blade.php)[_{{{CITATION{{{_3{](https://github.com/amaliayuna/resto2/tree/1dc9f5dc66eeb6512b8cf32016e06d78bd2e0a33/application%2Fviews%2Fv_login_user.php)[_{{{CITATION{{{_4{](https://github.com/ptadisetiawan/perpusdigital/tree/04737ba0209663195ba8501a15b51264502b6f47/article%2Fviews%2Fpencarian-lanjut%2FresultListOpac.php)[_{{{CITATION{{{_5{](https://github.com/Darkseidsam7/Fresh-Admin-PHP-Templates/tree/86637bb6d386992d8b1e4c076e6cd02a1fddd05f/typography.php)[_{{{CITATION{{{_6{](https://github.com/joshand/dashboard/tree/a7c2155d94ec4e3e8d57bc6fd5036c1b133a0b34/dashboard%2Fdevicebak.php)[_{{{CITATION{{{_7{](https://github.com/ord0077/salesapp/tree/dbe44cf9f568c4061ce78427c9f4748306ce8c8c/resources%2Fviews%2Fretails%2Fsingle.blade.php)[_{{{CITATION{{{_8{](https://github.com/Ramu93/bw/tree/4495266fff10102207e7ff38040f6cb3b27dcdc5/bonded%2Fmaster%2Fitem-master.php)[_{{{CITATION{{{_9{](https://github.com/hengkysandy/sprout/tree/2cd0c11f3c805c366d164699dd5c287fbb90e3af/resources%2Fviews%2Fpost-buy-lead%2Fprocurement-manager%2Fmeeting-schedule.blade.php)[_{{{CITATION{{{_10{](https://github.com/psolin/inventory_pickup_webapp/tree/d7ebf18d9ad187f9e6209f33d5594184e4432904/pickup%2Fstatic%2Ftransaction.js)
+{% endfor %}
